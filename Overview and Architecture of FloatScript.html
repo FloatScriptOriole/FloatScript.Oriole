@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overview and Architecture of FloatScript</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Roboto+Mono:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --glass-bg-light: rgba(255, 255, 255, 0.15);
+            --glass-bg-dark: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --text-color: #333;
+            --header-color: #1a237e;
+            --accent-color: #81d4fa;
+            --light-blue: #e3f2fd;
+            --dark-blue: #0d47a1;
+            --gradient-start: #e3f2fd;
+            --gradient-end: #bbdefb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.5s ease-in-out;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;charset=UTF-8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M50 0L100 50L50 100L0 50L50 0Z" fill="rgba(255, 255, 255, 0.1)"/><path d="M25 0L75 50L25 100L-25 50L25 0Z" fill="rgba(255, 255, 255, 0.05)"/></svg>') repeat;
+            opacity: 0.8;
+            pointer-events: none;
+            z-index: -1;
+            animation: background-pan 60s infinite linear;
+        }
+        
+        @keyframes background-pan {
+            from { background-position: 0 0; }
+            to { background-position: 1000px 1000px; }
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 280px;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            background: var(--glass-bg-light);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            animation: slideInLeft 0.5s ease-out;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .sidebar-header i {
+            font-size: 1.8rem;
+            color: var(--dark-blue);
+            margin-right: 10px;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.3rem;
+            margin: 0;
+            color: var(--dark-blue);
+        }
+
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        .sidebar a {
+            color: var(--dark-blue);
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-weight: 600;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .sidebar a i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .sidebar a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--accent-color);
+            opacity: 0;
+            border-radius: 12px;
+            z-index: -1;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar a:hover {
+            color: #fff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar a:hover i {
+            transform: scale(1.2);
+        }
+
+        .sidebar a:hover::before {
+            opacity: 0.8;
+        }
+
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem 3rem;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            width: calc(100% - 280px);
+        }
+
+        .navbar {
+            position: sticky;
+            top: 0;
+            padding: 1.5rem 2rem;
+            background: var(--glass-bg-dark);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            z-index: 99;
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.7s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--dark-blue);
+            margin-right: 15px;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--header-color);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+            margin: 0;
+            background: linear-gradient(90deg, var(--dark-blue), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .glass-section {
+            background: var(--glass-bg-dark);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            position: relative;
+            z-index: 1;
+            transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+            overflow: hidden;
+        }
+
+        .glass-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.1) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+
+        .glass-section:hover {
+            transform: translateY(-8px) scale(1.01);
+            box-shadow: 0 16px 48px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: var(--dark-blue);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: var(--header-color);
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background: var(--accent-color);
+            border-radius: 50%;
+        }
+
+        p {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+            color: #444;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        th {
+            background: var(--accent-color);
+            color: var(--dark-blue);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        pre {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            overflow-x: auto;
+            font-family: 'Roboto Mono', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        pre::before {
+            content: 'Code';
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: var(--accent-color);
+            color: var(--dark-blue);
+            padding: 0.2rem 0.8rem;
+            font-size: 0.8rem;
+            border-bottom-right-radius: 5px;
+            font-weight: bold;
+        }
+
+        code {
+            font-family: 'Roboto Mono', monospace;
+            color: var(--dark-blue);
+            background: rgba(255, 255, 255, 0.3);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+
+        .feature-list li {
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            flex: 1 1 calc(33.333% - 2rem);
+            min-width: 250px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-list li::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color);
+        }
+
+        .feature-list li:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        ul:not(.feature-list) {
+            padding-left: 1.5rem;
+        }
+
+        ul:not(.feature-list) li {
+            margin-bottom: 0.8rem;
+            position: relative;
+            padding-left: 1.5rem;
+            line-height: 1.6;
+        }
+
+        ul:not(.feature-list) li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+            background: var(--glass-bg-light);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .footer p {
+            margin: 0;
+            color: var(--dark-blue);
+            font-weight: 500;
+        }
+
+        .scroll-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--accent-color);
+            color: var(--dark-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .scroll-top.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .scroll-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1.5rem;
+                padding-top: 6rem;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: fixed;
+                flex-direction: row;
+                overflow-x: auto;
+                padding: 1rem;
+                box-shadow: none;
+                border-right: none;
+                justify-content: flex-start;
+                border-bottom: 1px solid var(--glass-border);
+                animation: none;
+                height: auto;
+                z-index: 1000;
+            }
+            
+            .sidebar-header {
+                display: none;
+            }
+            
+            .sidebar a {
+                padding: 0.8rem 1.2rem;
+                margin: 0 0.5rem;
+                white-space: nowrap;
+                font-size: 0.9rem;
+            }
+            
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                border-radius: 0;
+                margin: 0;
+                border-bottom: 1px solid var(--glass-border);
+                animation: none;
+                padding: 1rem;
+                z-index: 1001;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .glass-section {
+                padding: 1.5rem;
+                margin-top: 1rem;
+            }
+            
+            .feature-list li {
+                flex-basis: 100%;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding-top: 7rem;
+            }
+            
+            .glass-section {
+                padding: 1.2rem;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-code"></i>
+                <h2>FloatScript</h2>
+            </div>
+            <a href="#overview"><i class="fas fa-home"></i> Overview</a>
+            <a href="#bytecode"><i class="fas fa-microchip"></i> Bytecode</a>
+            <a href="#compiler"><i class="fas fa-cogs"></i> Compiler</a>
+            <a href="#lexer"><i class="fas fa-font"></i> Lexer</a>
+            <a href="#parser"><i class="fas fa-project-diagram"></i> Parser</a>
+            <a href="#terminal"><i class="fas fa-terminal"></i> Terminal Usage</a>
+            <a href="#performance"><i class="fas fa-tachometer-alt"></i> Performance</a>
+            <a href="#about"><i class="fas fa-info-circle"></i> About</a>
+        </div>
+
+        <div class="main-content">
+            <nav class="navbar">
+                <div class="logo">
+                    <i class="fas fa-laptop-code"></i>
+                    <h1>Overview and Architecture of FloatScript</h1>
+                </div>
+            </nav>
+
+            <section id="overview" class="glass-section">
+                <h2>Introduction and Architecture</h2>
+                <p>FloatScript is a dynamically typed, interpreted scripting language designed for simplicity and ease of use. Its execution model relies on a virtual machine (VM) that processes a compact, efficient bytecode representation of the source code. This architecture, encompassing a lexer, parser, compiler, and virtual machine, is entirely self-hosted, meaning all these tools are written in FloatScript itself. This design provides profound insights into compiler design and the recursive elegance of self-referential systems. The entire system is a layered architecture where each component builds upon the functionality of the preceding one. We will also examine the C++ implementation of the Floatscript interpreter (floatscript.oriole.cpp), which serves as the bootstrap mechanism for the entire system.</p>
+            </section>
+
+            <section id="bytecode" class="glass-section">
+                <h2>FloatScript Bytecode Architecture and Implementation</h2>
+                <p>FloatScript programs are not executed directly; they are compiled into an intermediate representation known as bytecode. This bytecode is then executed by the FloatScript Virtual Machine (VM). The instruction set is designed to be lean yet powerful, enabling efficient execution of programs. The VM is a stack-based machine, performing operations by manipulating values on a central data structure: the operand stack. This design offers several advantages: simplicity of design, bytecode compactness, ease of code generation, and natural expression evaluation.</p>
+                
+                <h3>Bytecode Instruction Set</h3>
+                <p>The VM operates on a set of bytecode instructions, each with a unique opcode. The following table details the opcodes:</p>
+                
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Opcode Name</th>
+                            <th>Value</th>
+                            <th>Description</th>
+                            <th>Operands</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>OP_CONSTANT</td><td>0</td><td>Pushes a constant value onto the stack.</td><td>constant_index</td></tr>
+                        <tr><td>OP_ADD</td><td>1</td><td>Pops two numbers, adds them, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_SUBTRACT</td><td>2</td><td>Pops two numbers, subtracts the second from the first, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_MULTIPLY</td><td>3</td><td>Pops two numbers, multiplies them, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_DIVIDE</td><td>4</td><td>Pops two numbers, divides the first by the second, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_MODULO</td><td>5</td><td>Pops two numbers, performs modulo, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_NEGATE</td><td>6</td><td>Pops a number, negates it, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_NOT</td><td>7</td><td>Pops a boolean, performs logical NOT, and pushes the result.</td><td>None</td></tr>
+                        <tr><td>OP_EQUAL</td><td>8</td><td>Pops two values, checks for equality, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_NOT_EQUAL</td><td>9</td><td>Pops two values, checks for inequality, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_GREATER</td><td>10</td><td>Pops two values, checks if the first is greater, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_GREATER_EQUAL</td><td>11</td><td>Pops two values, checks if the first is greater or equal, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_LESS</td><td>12</td><td>Pops two values, checks if the first is less, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_LESS_EQUAL</td><td>13</td><td>Pops two values, checks if the first is less or equal, and pushes a boolean result.</td><td>None</td></tr>
+                        <tr><td>OP_TRUE</td><td>14</td><td>Pushes the boolean value true onto the stack.</td><td>None</td></tr>
+                        <tr><td>OP_FALSE</td><td>15</td><td>Pushes the boolean value false onto the stack.</td><td>None</td></tr>
+                        <tr><td>OP_NONE</td><td>16</td><td>Pushes the none value onto the stack.</td><td>None</td></tr>
+                        <tr><td>OP_PRINT</td><td>17</td><td>Pops the top value from the stack and prints it to standard output.</td><td>None</td></tr>
+                        <tr><td>OP_POP</td><td>18</td><td>Pops the top value from the stack and discards it.</td><td>None</td></tr>
+                        <tr><td>OP_DEFINE_GLOBAL</td><td>19</td><td>Defines a global variable with a name from the constants pool.</td><td>name_index</td></tr>
+                        <tr><td>OP_GET_GLOBAL</td><td>20</td><td>Retrieves the value of a global variable and pushes it onto the stack.</td><td>name_index</td></tr>
+                        <tr><td>OP_SET_GLOBAL</td><td>21</td><td>Sets the value of an existing global variable.</td><td>name_index</td></tr>
+                        <tr><td>OP_JUMP_IF_FALSE</td><td>22</td><td>Jumps by an offset if the top of the stack is false.</td><td>offset</td></tr>
+                        <tr><td>OP_JUMP</td><td>23</td><td>Unconditionally jumps by an offset.</td><td>offset</td></tr>
+                        <tr><td>OP_LOOP</td><td>24</td><td>Jumps backward by an offset, typically used for loop constructs.</td><td>offset</td></tr>
+                        <tr><td>OP_CALL</td><td>25</td><td>Calls a function.</td><td>num_args</td></tr>
+                        <tr><td>OP_RETURN</td><td>26</td><td>Returns from the current function.</td><td>None</td></tr>
+                    </tbody>
+                </table>
+                
+                <h3>Bytecode Format and Data Structures</h3>
+                <p>FloatScript bytecode is organized into 'chunks,' containers for instructions and associated data. Each chunk is a pair: `[constants_pool, code]`. The VM uses this structure to efficiently access both executable instructions and literal values.</p>
+                <ul>
+                    <li><strong>Constants Pool</strong>: An array storing all literal values, such as numbers, booleans, and strings. The compiler replaces these with an index to reduce code size and provide efficient access.</li>
+                    <li><strong>Code Array</strong>: Contains the sequence of bytecode instructions. The VM's instruction pointer (`ip`) traverses this array, fetching and executing instructions.</li>
+                    <li><strong>Stack</strong>: The central data structure where most operations manipulate values. The VM is a stack-based machine, which simplifies instruction encoding and execution.</li>
+                    <li><strong>Globals</strong>: Global variables are stored in a hash map. Opcodes like `OP_DEFINE_GLOBAL`, `OP_GET_GLOBAL`, and `OP_SET_GLOBAL` interact with this map.</li>
+                    <li><strong>Call Frames</strong>: Conceptually, a call frame represents the execution context of a function call, managing the instruction pointer, local variables, and parameters for that function.</li>
+                </ul>
+            </section>
+
+            <section id="compiler" class="glass-section">
+                <h2>The Compiler (floatscript_compiler.fs)</h2>
+                <p>The compiler translates the Abstract Syntax Tree (AST) into bytecode. It maintains state during compilation, including `current_chunk` (for bytecode), `constants_pool` (for literals), `locals` (for variable scopes), and `scope_depth`.</p>
+                <p>The compilation process involves a recursive traversal of the AST, emitting appropriate opcodes for each node. For instance, a literal node becomes an `OP_CONSTANT` instruction while declarations involve `OP_DEFINE_GLOBAL`. For control flow (if, while), the compiler uses backpatching to fill in jump offsets later. Function declarations are compiled into separate bytecode chunks, allowing for modularity.</p>
+            </section>
+
+            <section id="lexer" class="glass-section">
+                <h2>The Lexer (floatscript_lexer.fs)</h2>
+                <p>The lexer is the first phase of compilation, transforming raw source code into a stream of meaningful tokens. These tokens represent fundamental building blocks like keywords, identifiers, operators, and literals. The `floatscript_lexer.fs` file defines a comprehensive set of token types and the logic for recognizing them.</p>
+                <p>The lexer operates by scanning the input, maintaining a position in the source code, and using helper functions to efficiently identify tokens. The core logic is in `scan_token()`, which calls specialized functions like `scan_number()` or `scan_string()` based on the character it encounters.</p>
+            </section>
+
+            <section id="parser" class="glass-section">
+                <h2>The Parser (floatscript_parser.fs)</h2>
+                <p>The parser takes the token stream from the lexer and builds a hierarchical Abstract Syntax Tree (AST). The AST captures the grammatical structure of the code, which the compiler can then use to generate bytecode. The parser is a recursive descent parser, building the tree by calling functions for each grammatical rule.</p>
+                <p>The parser defines various AST node types to represent different language constructs, from `AST_PROGRAM` to `AST_LITERAL`. The parsing process begins with `parse_program()`, which dispatches to other functions to handle specific statements and expressions. Expressions are handled using an operator-precedence approach.</p>
+            </section>
+
+            <section id="terminal" class="glass-section">
+                <h2>How to Code in Floatscript in the Terminal</h2>
+                <p>To get started, you can run the Floatscript interpreter directly from your terminal. This will launch an interactive shell where you can execute code line by line.</p>
+                <h3>Running the Interpreter</h3>
+                <p>To run the interactive Floatscript shell, use the following command:</p>
+                <pre><code>/home/ubuntu/floatscript_interpreter</code></pre>
+                <p>This will show a prompt like: "This is floatscript.flt made by: L.Luh4n4 (type 'exit' to terminate)". You can also include libraries by typing `#include &lt;lib_name&gt;`.</p>
+            </section>
+
+            <section id="performance" class="glass-section">
+                <h2>Performance and Architectural Uniqueness</h2>
+                <p>FloatScript's unique architecture is centered around a stack-based virtual machine and a lean bytecode instruction set. This design leads to surprising performance benefits.</p>
+                
+                <h3>Key Architectural Strengths</h3>
+                <ul class="feature-list">
+                    <li><strong>Purity of Stack-Based VM</strong>: The stack-centric approach simplifies the VM's internal logic, making it less prone to errors and easier to implement.</li>
+                    <li><strong>Bytecode Compactness</strong>: The lack of explicit register operands leads to smaller, single-byte opcodes, reducing the memory footprint of compiled programs.</li>
+                    <li><strong>Ease of Code Generation</strong>: The compiler can directly translate expression trees into bytecode without complex register allocation, accelerating the compilation process.</li>
+                    <li><strong>Natural Expression Evaluation</strong>: Language constructs naturally map to stack-based evaluation, like converting infix to postfix notation.</li>
+                    <li><strong>Simplicity of Instruction Set</strong>: A lean, focused instruction set means minimal overhead in decoding and dispatching instructions, leading to quick execution.</li>
+                    <li><strong>Direct Compilation</strong>: The compiler moves directly from the AST to bytecode without multiple intermediate representations, reducing compilation time and complexity.</li>
+                    <li><strong>Backpatching for Control Flow</strong>: Using jump instructions with placeholder offsets streamlines the compilation process for loops and conditionals.</li>
+                    <li><strong>Simple Scope Management</strong>: A simple stack of local variable maps ensures correct variable resolution without complex symbol tables.</li>
+                </ul>
+            </section>
+
+            <section id="about" class="glass-section">
+                <h2>About</h2>
+                <p>FloatScript copyright 2025 was made by Lusungu Luhana and website designed by Alinaswe Sinkala.</p>
+            </section>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 FloatScript. All rights reserved.</p>
+    </div>
+
+    <div class="scroll-top" id="scrollTop">
+        <i class="fas fa-arrow-up"></i>
+    </div>
+
+    <script>
+        // Scroll to top button
+        const scrollTopBtn = document.getElementById('scrollTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                scrollTopBtn.classList.add('active');
+            } else {
+                scrollTopBtn.classList.remove('active');
+            }
+        });
+        
+        scrollTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                    
+                    // Close mobile menu if open
+                    if (window.innerWidth <= 1024) {
+                        document.querySelector('.sidebar').classList.remove('active');
+                    }
+                }
+            });
+        });
+        
+        // Highlight active section in sidebar
+        const sections = document.querySelectorAll('.glass-section');
+        const navLinks = document.querySelectorAll('.sidebar a');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                
+                if (pageYOffset >= (sectionTop - 150)) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
