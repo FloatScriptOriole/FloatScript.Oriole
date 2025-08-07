@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=0.85">
+    <title>FloatScript Coding Guide</title>
+    <!-- Use Inter for the main text and JetBrains Mono for code blocks -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-light: #38bdf8;
+            --secondary: #1e293b;
+            --accent: #3b82f6;
+            --glass: rgba(30, 41, 59, 0.75);
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            @apply bg-slate-900 text-slate-100;
+            background-image: radial-gradient(circle at 10% 20%, rgba(14, 165, 233, 0.15) 0%, rgba(30, 41, 59, 0.95) 90%);
+            overflow-x: hidden;
+            text-shadow: 0 0 8px rgba(14, 165, 233, 0.15);
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(20px) saturate(200%);
+            -webkit-backdrop-filter: blur(20px) saturate(200%);
+            background-color: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .glass-card {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background-color: var(--glass);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 48px 0 rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .code-block {
+            @apply bg-slate-800 rounded-lg p-4 overflow-x-auto;
+            font-family: 'JetBrains Mono', monospace;
+            border-left: 4px solid var(--primary);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+            font-size: 0.9em;
+        }
+
+        .nav-link {
+            @apply px-4 py-2 rounded-lg transition-all duration-300;
+            font-weight: 600;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(14, 165, 233, 0.2);
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .nav-link.active {
+            background-color: rgba(14, 165, 233, 0.3);
+            border-bottom: 2px solid var(--primary-light);
+            box-shadow: inset 0 -2px 0 var(--primary-light);
+        }
+        
+        .sidebar-link {
+            @apply px-3 py-2 rounded-lg transition-all duration-300;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: rgba(248, 250, 252, 0.7);
+        }
+
+        .sidebar-link:hover {
+            background-color: rgba(14, 165, 233, 0.2);
+            color: var(--text);
+            border-left: 2px solid var(--primary);
+            transform: translateX(4px);
+        }
+
+        .sidebar-link.active {
+            background-color: rgba(14, 165, 233, 0.3);
+            color: var(--text);
+            border-left: 2px solid var(--primary-light);
+            font-weight: 600;
+        }
+
+        /* Major sidebar improvements */
+        .sidebar {
+            /* Keep original styles */
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            /* Custom scrollbar for a professional look */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) transparent;
+        }
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background-color: var(--primary);
+            border-radius: 4px;
+            border: 2px solid transparent;
+        }
+
+        .command {
+            font-family: 'JetBrains Mono', monospace;
+            @apply text-blue-300 font-bold;
+        }
+
+        .keyword {
+            font-family: 'JetBrains Mono', monospace;
+            @apply text-purple-400 font-bold;
+        }
+
+        .string {
+            font-family: 'JetBrains Mono', monospace;
+            @apply text-green-400;
+        }
+
+        .comment {
+            font-family: 'JetBrains Mono', monospace;
+            @apply text-slate-400 italic;
+        }
+
+        .type {
+            font-family: 'JetBrains Mono', monospace;
+            @apply text-yellow-400;
+        }
+
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--secondary);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            border: 1px solid var(--primary);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: static;
+                height: auto;
+                padding: 1rem;
+            }
+            
+            .navbar {
+                flex-direction: column;
+                padding: 0.5rem;
+            }
+            
+            .nav-link {
+                margin: 0.25rem 0;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Horizontal Glass Navbar -->
+    <nav class="glass-nav fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-3">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-300">How to Code in FloatScript</span>
+        </div>
+        
+        <div class="hidden md:flex space-x-1">
+            <a href="#introduction" class="nav-link">Introduction</a>
+            <a href="#general-commands" class="nav-link">General Commands</a>
+            <a href="#variables" class="nav-link">Variables</a>
+            <a href="#output" class="nav-link">Output</a>
+            <a href="#control-flow" class="nav-link">Control Flow</a>
+            <a href="#functions" class="nav-link">Functions</a>
+            <a href="#compilation" class="nav-link">Compilation</a>
+            <a href="#libraries" class="nav-link">Libraries</a>
+        </div>
+        
+        <button class="md:hidden text-slate-300">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+        </button>
+    </nav>
+    
+    <!-- Vertical Sidebar -->
+    <div class="sidebar fixed left-0 top-16 bottom-0 w-64 overflow-y-auto p-4 hidden md:block z-40 glass-nav">
+        <div class="space-y-2">
+            <h3 class="text-sm uppercase tracking-wider text-slate-400 mb-2">Quick Navigation</h3>
+            <a href="#exit" class="sidebar-link block">exit Command</a>
+            <a href="#help" class="sidebar-link block">./help Command</a>
+            <a href="#comments" class="sidebar-link block">Comments</a>
+            <a href="#lex" class="sidebar-link block">lex Assignment</a>
+            <a href="#let" class="sidebar-link block">let Assignment</a>
+            <a href="#float" class="sidebar-link block">float Assignment</a>
+            <a href="#ternary" class="sidebar-link block">Ternary Operator</a>
+            <a href="#stdout" class="sidebar-link block">std::out</a>
+            <a href="#stdout-array" class="sidebar-link block">std::out (i:v)</a>
+            <a href="#println" class="sidebar-link block">println_</a>
+            <a href="#stdlog" class="sidebar-link block">std::log</a>
+            <a href="#if" class="sidebar-link block">if Statement</a>
+            <a href="#if-array" class="sidebar-link block">if _<val> ; <arr>_</a>
+            <a href="#while" class="sidebar-link block">while Loop</a>
+            <a href="#for" class="sidebar-link block">for Loop</a>
+            <a href="#rt" class="sidebar-link block">.rt Command</a>
+            <a href="#def" class="sidebar-link block">def Function</a>
+            <a href="#fn" class="sidebar-link block">fn Function</a>
+            <a href="#init" class="sidebar-link block">init Function</a>
+            <a href="#auto-jit" class="sidebar-link block">auto <jit></a>
+            <a href="#jit-compile" class="sidebar-link block">jit::compile</a>
+            <a href="#jit-run" class="sidebar-link block">jit::run</a>
+            <a href="#aot-compile" class="sidebar-link block">aot::compile</a>
+            <a href="#aot-run" class="sidebar-link block">aot::run</a>
+            <a href="#aot-dis" class="sidebar-link block">aot::dis</a>
+            <a href="#rpn-lib" class="sidebar-link block"><rpn> Library</a>
+            <a href="#mem-lib" class="sidebar-link block"><mem> Library</a>
+            <a href="#fs-lib" class="sidebar-link block"><fs> Library</a>
+            <a href="#vect-lib" class="sidebar-link block"><vect> Library</a>
+            <a href="#jit-lib" class="sidebar-link block"><jit> Library</a>
+            <a href="#io-lib" class="sidebar-link block"><io> Library</a>
+            <a href="#bit-lib" class="sidebar-link block"><bit> Library</a>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content ml-0 md:ml-64 mt-16 p-6">
+        <!-- Introduction Section -->
+        <section id="introduction" class="mb-12 glass-card p-6 rounded-xl">
+            <h1 class="text-3xl font-bold mb-4 text-blue-300">FloatScript Coding Guide</h1>
+            <p class="mb-4">FloatScript is a versatile scripting language designed for various computational tasks, offering a rich set of commands and libraries for efficient programming.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <div class="glass-card p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2 text-blue-300">Design Philosophy</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Hybrid Execution Model (Interpretation, JIT, AOT)</li>
+                        <li>Developer Empowerment and Control</li>
+                        <li>Modularity and Extensibility</li>
+                        <li>Readability and Maintainability</li>
+                        <li>Performance and Efficiency</li>
+                        <li>Error Handling and Debugging</li>
+                        <li>Community and Ecosystem</li>
+                    </ul>
+                </div>
+                
+                <div class="glass-card p-4 rounded-lg">
+                    <h3 class="text-xl font-semibold mb-2 text-blue-300">Core Features</h3>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>Dynamic and static typing with <span class="command">lex</span>, <span class="command">let</span>, <span class="command">float</span></li>
+                        <li>Comprehensive output commands (<span class="command">std::out</span>, <span class="command">println_</span>, <span class="command">std::log</span>)</li>
+                        <li>Robust control flow structures</li>
+                        <li>Multiple function definition styles (<span class="command">def</span>, <span class="command">fn</span>, <span class="command">init</span>)</li>
+                        <li>Advanced compilation (JIT and AOT)</li>
+                        <li>Specialized libraries for various domains</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-6 glass-card p-4 rounded-lg">
+                <h3 class="text-xl font-semibold mb-2 text-blue-300">About</h3>
+                <p>This comprehensive guide was created by <span class="font-bold">Alinaswe Sinkala</span> to document all features of FloatScript, which was originally developed by <span class="font-bold">Lusungu Luhana</span>.</p>
+                <p class="mt-2">The guide maintains all original documentation from the FloatScript feature documentation PDF made by Lusungu.</p>
+                <p class="mt-2">For a detailed look at the core design and philosophy, <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Overview%20and%20Architecture%20of%20FloatScript.html" class="text-blue-300 hover:text-blue-200 underline transition-colors duration-200" target="_blank">press here to see the Overview and Architecture of FloatScript</a>.</p>
+            </div>
+        </section>
+        
+        <!-- General Commands Section -->
+        <section id="general-commands" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">General Commands</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- exit Command -->
+                <div id="exit" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">exit Command</h3>
+                    <p class="mb-4">Terminates the FloatScript interpreter gracefully, releasing allocated resources.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">exit</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p class="mb-2">The exit command orchestrates a graceful shutdown of the interpreter environment, including:</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Releasing dynamically allocated memory</li>
+                            <li>Closing open file handles</li>
+                            <li>Terminating background processes/threads</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- ./help Command -->
+                <div id="help" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">./help Command</h3>
+                    <p class="mb-4">Displays a comprehensive list of available commands and their basic usage.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">./help</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p class="mb-2">The help output is categorized into sections:</p>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>General Commands</li>
+                            <li>Variables & Assignment</li>
+                            <li>Output</li>
+                            <li>Control Flow & Blocks</li>
+                            <li>Functions</li>
+                            <li>JIT Compilation</li>
+                            <li>AOT Compilation</li>
+                            <li>Libraries</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Comments -->
+                <div id="comments" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">Comments</h3>
+                    <p class="mb-4">Single-line comments are denoted by <span class="command">//</span>.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="comment">// This is a single-line comment</span><br>
+                        <span class="command">lex</span> x = 10 <span class="comment">// Assign 10 to x</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>Comments are vital for code documentation, allowing programmers to add explanatory notes, clarify complex logic, or temporarily disable lines of code without deleting them.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Variables & Assignment Section -->
+        <section id="variables" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Variables & Assignment</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- lex Assignment -->
+                <div id="lex" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">lex Assignment</h3>
+                    <p class="mb-4">The most versatile assignment operator, allowing assignment of any data type.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> my_str = <span class="string">'hello'</span> <span class="comment">// String</span><br>
+                        <span class="command">lex</span> count = 10 <span class="comment">// Integer</span><br>
+                        <span class="command">lex</span> price = 99.99 <span class="comment">// Float</span><br>
+                        <span class="command">lex</span> is_active = true <span class="comment">// Boolean</span><br>
+                        <span class="command">lex</span> my_array = [1, 2, 3] <span class="comment">// Array</span><br>
+                        <span class="command">lex</span> result = (a + b) * c <span class="comment">// Expression</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>lex provides dynamic typing where the interpreter automatically infers the type based on the assigned value.</p>
+                    </div>
+                </div>
+                
+                <!-- let Assignment -->
+                <div id="let" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">let Assignment</h3>
+                    <p class="mb-4">Explicitly assigns integer values to variables.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">let</span> count = 10<br>
+                        <span class="command">let</span> index = 0<br>
+                        <span class="command">let</span> max_users = 100
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>let ensures the assigned value conforms to the integer data type, preventing accidental assignment of non-integer values.</p>
+                    </div>
+                </div>
+                
+                <!-- float Assignment -->
+                <div id="float" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">float Assignment</h3>
+                    <p class="mb-4">Explicitly assigns floating-point values to variables.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">float</span> pi = 3.14159<br>
+                        <span class="command">float</span> gravity = 9.81<br>
+                        <span class="command">float</span> temperature = 36.6
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>float helps maintain precision and ensures mathematical operations are performed with floating-point arithmetic.</p>
+                    </div>
+                </div>
+                
+                <!-- Ternary Operator -->
+                <div id="ternary" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">Ternary Operator</h3>
+                    <p class="mb-4">Concise conditional expression for assignments.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> max_val = x > y ? x : y<br>
+                        <span class="command">lex</span> status = is_logged_in ? <span class="string">'Online'</span> : <span class="string">'Offline'</span><br>
+                        <span class="command">lex</span> config_value = user_input ? user_input : <span class="string">'default'</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The ternary operator (condition ? value_if_true : value_if_false) reduces the need for verbose if-else statements for simple conditional assignments.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Output Section -->
+        <section id="output" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Output Commands</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- std::out -->
+                <div id="stdout" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">std::out</h3>
+                    <p class="mb-4">Primary method for printing variables or literal values to standard output.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">std::out</span> my_variable<br>
+                        <span class="command">std::out</span> <span class="string">"Hello, FloatScript!"</span><br>
+                        <span class="command">std::out</span> <span class="string">"The value is: "</span>, <span class="command">std::out</span> my_var
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>std::out can accept any data type, automatically converting it to a string representation. It does not automatically append a newline.</p>
+                    </div>
+                </div>
+                
+                <!-- std::out (i:v) -->
+                <div id="stdout-array" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">std::out (i:v)</h3>
+                    <p class="mb-4">Prints all elements of array v except the element at index i.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> my_array = [10, 20, 30, 40]<br>
+                        <span class="command">std::out</span> (1:my_array) <span class="comment">// Output: [10, 30, 40]</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>This selective printing capability offers fine-grained control over array output, useful for debugging array manipulations.</p>
+                    </div>
+                </div>
+                
+                <!-- println_ -->
+                <div id="println" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">println_</h3>
+                    <p class="mb-4">Prints the value of a variable followed by a newline character.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">println_</span>result <span class="comment">// Prints value of 'result' with newline</span><br>
+                        <span class="command">println_</span><span class="string">'Hello, world!'</span> <span class="comment">// Literal string with newline</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>println_ provides a concise way to quickly display variable contents in a readable format, ensuring each output appears on a new line.</p>
+                    </div>
+                </div>
+                
+                <!-- std::log -->
+                <div id="stdlog" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">std::log</h3>
+                    <p class="mb-4">Structured logging command that prefixes messages with [STD LOG].</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">std::log</span> <span class="string">"Processing complete"</span><br>
+                        <span class="comment">// Output: [STD LOG] Processing complete</span><br><br>
+                        <span class="command">std::log</span> <span class="string">"[ERROR] File not found: config.txt"</span><br>
+                        <span class="comment">// Output: [STD LOG] [ERROR] File not found: config.txt</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>std::log is invaluable for tracing program execution, recording events, and identifying potential issues during development and testing.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Control Flow Section -->
+        <section id="control-flow" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Control Flow & Blocks</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- if Statement -->
+                <div id="if" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">if Statement</h3>
+                    <p class="mb-4">Conditional execution of a block of code.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="keyword">if</span> _i > 5_ {<br>
+                        &nbsp;&nbsp;<span class="command">std::out</span> <span class="string">"i is greater than 5"</span><br>
+                        }
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The condition can be any expression that resolves to a boolean value, including comparisons, logical operations, or variable evaluations.</p>
+                    </div>
+                </div>
+                
+                <!-- if _<val> ; <arr>_ -->
+                <div id="if-array" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">if _<val> ; <arr>_</h3>
+                    <p class="mb-4">Executes a block if a value exists in an array.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="keyword">if</span> _<span class="string">'apple'</span>; my_list_ {<br>
+                        &nbsp;&nbsp;<span class="command">std::out</span> <span class="string">"Apple found!"</span><br>
+                        }
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>This syntax offers a clean and efficient way to check for the presence of an element within a given array.</p>
+                    </div>
+                </div>
+                
+                <!-- while Loop -->
+                <div id="while" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">while Loop</h3>
+                    <p class="mb-4">Repeatedly executes a block of code as long as a condition is true.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">let</span> i = 0<br>
+                        <span class="keyword">while</span> _i < 10_ {<br>
+                        &nbsp;&nbsp;<span class="command">std::out</span> i<br>
+                        &nbsp;&nbsp;i = i + 1<br>
+                        }
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>while loops are ideal for situations where the number of iterations is unknown and depends on a dynamic condition.</p>
+                    </div>
+                </div>
+                
+                <!-- for Loop -->
+                <div id="for" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">for Loop</h3>
+                    <p class="mb-4">Iterates through a sequence of values.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="keyword">for</span> (<span class="command">let</span> i = 0; i < 10; i++) {<br>
+                        &nbsp;&nbsp;<span class="command">std::out</span> i<br>
+                        }<br>
+                        <span class="keyword">for</span> (<span class="command">lex</span> val <span class="keyword">in</span> my_array) {<br>
+                        &nbsp;&nbsp;<span class="command">std::out</span> val<br>
+                        }
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>FloatScript supports both C-style for loops and for-each style loops for iterating over arrays and other iterable objects.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Functions Section -->
+        <section id="functions" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Functions</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- def Function -->
+                <div id="def" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">def Function</h3>
+                    <p class="mb-4">Defines a traditional, globally scoped function.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">def</span> my_function(param1, param2) {<br>
+                        &nbsp;&nbsp;<span class="comment">// Function body</span><br>
+                        &nbsp;&nbsp;<span class="command">return</span> param1 + param2<br>
+                        }<br><br>
+                        <span class="command">lex</span> result = my_function(10, 20)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>def functions are accessible from anywhere in the script, making them suitable for utility functions and core logic.</p>
+                    </div>
+                </div>
+                
+                <!-- fn Function -->
+                <div id="fn" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">fn Function</h3>
+                    <p class="mb-4">Defines a function that is locally scoped to its block.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="keyword">if</span> _condition_ {<br>
+                        &nbsp;&nbsp;<span class="command">fn</span> local_func() {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="command">std::out</span> <span class="string">"This is a local function"</span><br>
+                        &nbsp;&nbsp;}<br>
+                        &nbsp;&nbsp;local_func()<br>
+                        }
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>fn functions are useful for creating helper functions that are only needed within a specific control flow block, preventing pollution of the global namespace.</p>
+                    </div>
+                </div>
+                
+                <!-- init Function -->
+                <div id="init" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">init Function</h3>
+                    <p class="mb-4">Defines a constructor function for a class or object.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="keyword">class</span> MyClass {<br>
+                        &nbsp;&nbsp;<span class="command">init</span>(name) {<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="command">this</span>.name = name<br>
+                        &nbsp;&nbsp;}<br>
+                        }<br><br>
+                        <span class="command">lex</span> my_obj = MyClass(<span class="string">'example'</span>)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>init is a special function that is automatically called when a new instance of an object is created, handling the initialization of its properties.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Compilation Section -->
+        <section id="compilation" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Compilation Commands</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- auto <jit> -->
+                <div id="auto-jit" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">auto <jit></h3>
+                    <p class="mb-4">Enables automatic Just-In-Time compilation for eligible functions.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">auto</span> <span class="type"><jit></span><br>
+                        <span class="comment">// Functions will be JIT-compiled on first call</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="command">auto <jit></span> command optimizes the performance of frequently executed code paths by compiling them to native machine code at runtime.</p>
+                    </div>
+                </div>
+                
+                <!-- jit::compile -->
+                <div id="jit-compile" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">jit::compile</h3>
+                    <p class="mb-4">Explicitly requests JIT compilation for a specific function.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">def</span> my_hot_func() { ... }<br>
+                        <span class="command">jit::compile</span> my_hot_func
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>This command gives developers precise control over which functions should be JIT-compiled, bypassing the automatic detection process.</p>
+                    </div>
+                </div>
+                
+                <!-- jit::run -->
+                <div id="jit-run" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">jit::run</h3>
+                    <p class="mb-4">Executes a JIT-compiled function.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">jit::run</span> my_compiled_func<br>
+                        <span class="comment">// Executes the compiled version</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>jit::run is used to call a function that has already been JIT-compiled, ensuring the performance benefits are realized without re-interpretation.</p>
+                    </div>
+                </div>
+                
+                <!-- aot::compile -->
+                <div id="aot-compile" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">aot::compile</h3>
+                    <p class="mb-4">Compiles the entire script to native code before execution.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">aot::compile</span> my_script.fs <span class="comment">// Generates a binary file</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>AOT compilation is suitable for production environments where startup time and peak performance are critical, as the compilation step is performed offline.</p>
+                    </div>
+                </div>
+                
+                <!-- aot::run -->
+                <div id="aot-run" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">aot::run</h3>
+                    <p class="mb-4">Executes a previously AOT-compiled binary.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">aot::run</span> my_binary<br>
+                        <span class="comment">// Directly executes the native code</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>This command provides the highest level of performance, as the code is already in a machine-executable format, bypassing the need for interpretation or JIT compilation at runtime.</p>
+                    </div>
+                </div>
+                
+                <!-- aot::dis -->
+                <div id="aot-dis" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300">aot::dis</h3>
+                    <p class="mb-4">Disassembles a compiled binary file to view the underlying native code.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">aot::dis</span> my_binary<br>
+                        <span class="comment">// Shows assembly code</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>aot::dis is an advanced debugging tool for developers who need to inspect the low-level output of the AOT compiler to optimize their code.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Libraries Section -->
+        <section id="libraries" class="mb-12">
+            <h2 class="text-2xl font-bold mb-6 text-blue-300 border-b border-slate-700 pb-2">Libraries</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- <rpn> Library -->
+                <div id="rpn-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><rpn></span> Library:rpn</h3>
+                    <p class="mb-4">Reverse Polish Notation (RPN) library for stack-based calculations.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="comment">// Example: (5 + 3) * 2</span><br>
+                        <span class="command">lex</span> result = <span class="type"><rpn></span>.eval(<span class="string">"5 3 + 2 *"</span>)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><rpn></span> library is a specialized tool for efficiently performing complex mathematical calculations using the RPN syntax, ideal for scientific and engineering applications.</p>
+                    </div>
+                </div>
+                
+                <!-- <mem> Library -->
+                <div id="mem-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><mem></span> Library:mem</h3>
+                    <p class="mb-4">Provides functions for low-level memory management and manipulation.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> buffer = <span class="type"><mem></span>.alloc(1024)<br>
+                        <span class="type"><mem></span>.set(buffer, 0, 255)<br>
+                        <span class="type"><mem></span>.free(buffer)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><mem></span> library gives advanced developers direct control over memory, enabling them to implement high-performance data structures and algorithms.</p>
+                    </div>
+                </div>
+                
+                <!-- <fs> Library -->
+                <div id="fs-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><fs></span> Library:fs</h3>
+                    <p class="mb-4">File system library for reading, writing, and managing files and directories.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> content = <span class="type"><fs></span>.read(<span class="string">"config.txt"</span>)<br>
+                        <span class="type"><fs></span>.write(<span class="string">"output.txt"</span>, <span class="string">"Hello!"</span>)<br>
+                        <span class="command">lex</span> exists = <span class="type"><fs></span>.exists(<span class="string">"data/"</span>)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><fs></span> library is a robust interface for interacting with the local file system, essential for scripts that need to persist data or process files.</p>
+                    </div>
+                </div>
+                
+                <!-- <vect> Library -->
+                <div id="vect-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><vect></span> Library:vect</h3>
+                    <p class="mb-4">Provides advanced vector and matrix operations for linear algebra and graphics.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> vec_a = <span class="type"><vect></span>.new(1, 2, 3)<br>
+                        <span class="command">lex</span> dot_prod = <span class="type"><vect></span>.dot(vec_a, vec_b)<br>
+                        <span class="command">lex</span> cross_prod = <span class="type"><vect></span>.cross(vec_a, vec_b)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><vect></span> library simplifies complex mathematical operations, making it an excellent choice for scientific computing, simulations, and game development.</p>
+                    </div>
+                </div>
+                
+                <!-- <jit> Library -->
+                <div id="jit-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><jit></span> Library:jit</h3>
+                    <p class="mb-4">Exposes JIT compilation APIs for programmatic control.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">def</span> fast_func() { ... }<br>
+                        <span class="type"><jit></span>.compile(fast_func)<br>
+                        <span class="type"><jit></span>.run(fast_func)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><jit></span> library provides granular control over JIT compilation, allowing developers to dynamically compile and execute functions at runtime for optimal performance.</p>
+                    </div>
+                </div>
+                
+                <!-- <io> Library -->
+                <div id="io-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><io></span> Library:io</h3>
+                    <p class="mb-4">Input/Output library for handling user input and external data streams.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> name = <span class="type"><io></span>.readln(<span class="string">"Enter your name: "</span>)<br>
+                        <span class="type"><io></span>.write(<span class="string">"Hello, "</span> + name)
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><io></span> library is the standard way to interact with users and other data sources, providing simple and powerful functions for both reading and writing.</p>
+                    </div>
+                </div>
+                
+                <!-- <bit> Library -->
+                <div id="bit-lib" class="glass-card p-6 rounded-xl">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-300"><span class="type"><bit></span> Library:bit</h3>
+                    <p class="mb-4">Provides bitwise operations for low-level data manipulation.</p>
+                    
+                    <div class="code-block mb-4">
+                        <span class="command">lex</span> a = 5 <span class="comment">// 0101</span><br>
+                        <span class="command">lex</span> b = 3 <span class="comment">// 0011</span><br>
+                        <span class="command">lex</span> c = <span class="type"><bit></span>.and(a, b) <span class="comment">// 0001 (1)</span>
+                    </div>
+                    
+                    <div class="text-sm text-slate-300">
+                        <p>The <span class="type"><bit></span> library is essential for tasks requiring fine-grained control over individual bits, such as embedded programming, cryptography, and network protocols.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
+    <script>
+        // Set active link on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash) {
+                const link = document.querySelector(`.nav-link[href="${hash}"], .sidebar-link[href="${hash}"]`);
+                if (link) {
+                    link.classList.add('active');
+                }
+            } else {
+                document.querySelector('.nav-link').classList.add('active');
+            }
+        });
+        
+        // Update active link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            document.querySelectorAll('.nav-link, .sidebar-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        // Mobile menu toggle
+        const mobileMenuButton = document.querySelector('button.md\\:hidden');
+        const mobileMenu = document.querySelector('.sidebar');
+        
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+</body>
+</html>
