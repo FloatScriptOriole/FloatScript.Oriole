@@ -397,6 +397,11 @@
             background-color: #d1fae5;
             color: #065f46;
         }
+
+        .badge-pending {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+        }
     </style>
 </head>
 <body class="font-inter text-gray-800">
@@ -493,6 +498,7 @@
                     <ul class="space-y-3">
                         <li><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" target="_blank" class="sidebar-link flex items-center p-2"><i class="fas fa-file-code mr-3"></i>FloatScript Docs</a></li>
                         <li><a href="#" class="sidebar-link flex items-center p-2 opacity-50 cursor-not-allowed"><i class="fas fa-robot mr-3"></i>APYChat Beta</a></li>
+                        <li><a href="#" class="sidebar-link flex items-center p-2 opacity-50 cursor-not-allowed"><i class="fas fa-desktop mr-3"></i>Sagittarius OS</a></li>
                         <li><a href="https://github.com/FloatScriptOriole" target="_blank" class="sidebar-link flex items-center p-2"><i class="fab fa-github mr-3"></i>GitHub Org</a></li>
                     </ul>
                 </div>
@@ -536,7 +542,7 @@
             <div class="container-wrapper z-10 text-center">
                 <div class="glass-panel max-w-4xl mx-auto p-8 md:p-12 rounded-2xl animate-on-scroll fade-in-up">
                     <h1 class="text-4xl sm:text-5xl md:text-6xl font-space-grotesk font-bold mb-4 text-[#1E1E1E]">Young Minds. <span class="text-highlight">Powerful Code.</span></h1>
-                    <p class="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">Oriole is a dynamic, youth-driven tech company from Chingola, Zambia, specializing in affordable, innovative coding solutions like FloatScript and APYChat.</p>
+                    <p class="text-lg md:text-xl text-gray-700 mb-8 max-w-2xl mx-auto">Oriole is a dynamic, youth-driven tech company from Chingola, Zambia, specializing in affordable, innovative coding solutions like FloatScript, APYChat, and Sagittarius OS.</p>
                     <div class="flex flex-wrap justify-center gap-4">
                         <a href="#products" class="btn btn-primary">Our Products</a>
                         <a href="#team" class="btn btn-secondary">Meet The Founders</a>
@@ -563,7 +569,7 @@
                         <div class="timeline-dot"></div><div class="timeline-content glass-panel rounded-2xl p-6"><span class="timeline-date font-bold text-highlight">Mid 2025</span><h3 class="font-bold text-lg mb-2">The Birth of Oriole</h3><p>Recognizing their complementary skills, they formalized their partnership, establishing Oriole—a name symbolizing innovation and the bright future of youth-led tech.</p></div>
                     </div>
                     <div class="timeline-item animate-on-scroll fade-in-up">
-                        <div class="timeline-dot"></div><div class="timeline-content glass-panel rounded-2xl p-6"><span class="timeline-date font-bold text-highlight">2025</span><h3 class="font-bold text-lg mb-2">Growth and Recognition</h3><p>With FloatScript gaining traction and the APYChat beta in development, Oriole secures its first round of seed funding and begins expanding its team, hiring for key executive roles.</p></div>
+                        <div class="timeline-dot"></div><div class="timeline-content glass-panel rounded-2xl p-6"><span class="timeline-date font-bold text-highlight">2025</span><h3 class="font-bold text-lg mb-2">Growth and Recognition</h3><p>With FloatScript gaining traction and APYChat in development, plus Lusungu beginning work on Sagittarius OS, Oriole secures its first round of seed funding.</p></div>
                     </div>
                 </div>
             </div>
@@ -575,7 +581,7 @@
                     <h2 class="section-title">Core Technologies</h2>
                     <p class="section-subtitle">Pioneering tools built for performance and accessibility.</p>
                 </div>
-                <div class="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     <div class="flex flex-col glass-panel p-8 rounded-2xl animate-on-scroll fade-in-up transition-all duration-300 hover:shadow-2xl hover:-translate-y-2">
                         <h3 class="text-3xl font-space-grotesk font-bold">FloatScript</h3>
                         <p class="text-highlight font-semibold">High-Performance Programming Language <span class="status-badge badge-live">LIVE</span></p>
@@ -600,6 +606,22 @@
                             <a href="#" class="btn btn-secondary w-full opacity-70 cursor-not-allowed">Beta Coming Soon</a>
                         </div>
                     </div>
+                    <div class="flex flex-col glass-panel p-8 rounded-2xl animate-on-scroll fade-in-up transition-all duration-300 hover:shadow-2xl hover:-translate-y-2" style="animation-delay: 0.4s;">
+                        <h3 class="text-3xl font-space-grotesk font-bold">Sagittarius</h3>
+                        <p class="text-highlight font-semibold">Standalone Operating System <span class="status-badge badge-pending">PENDING</span></p>
+                        <p class="my-6 text-gray-700 flex-grow">A revolutionary OS by Lusungu featuring a hybrid monolithic kernel with microkernel capabilities. Currently in early development with read capabilities for devices.</p>
+                        <div class="mt-auto space-y-3">
+                            <a href="#" class="block w-full text-center py-3 px-4 bg-gray-100 rounded-lg font-semibold opacity-70 cursor-not-allowed">
+                                <i class="fas fa-book fa-fw mr-2"></i> Technical Documentation
+                            </a>
+                            <a href="#" class="block w-full text-center py-3 px-4 bg-gray-100 rounded-lg font-semibold opacity-70 cursor-not-allowed">
+                                <i class="fas fa-download fa-fw mr-2"></i> Download (Coming Soon)
+                            </a>
+                            <a href="#" class="block w-full text-center py-3 px-4 bg-gray-100 rounded-lg font-semibold opacity-70 cursor-not-allowed">
+                                <i class="fas fa-code-branch fa-fw mr-2"></i> Contribute (GitHub)
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -622,10 +644,10 @@
                             </div>
                             <div class="flip-card-back glass-panel">
                                 <h3 class="font-bold text-xl mb-3 text-highlight">About Lusungu</h3>
-                                <p class="text-sm">The visionary creator of FloatScript and the architect of Oriole's technical direction. Passionate about compiler design, low-level optimization, and scalable systems.</p>
+                                <p class="text-sm">The visionary creator of FloatScript and Sagittarius OS, and the architect of Oriole's technical direction. Passionate about compiler design, low-level optimization, and operating systems.</p>
                                 <div class="mt-4 w-full text-left space-y-2">
                                     <p class="text-sm"><i class="fas fa-code w-5 text-center mr-2 text-highlight"></i> Mastery in C++</p>
-                                    <p class="text-sm"><i class="fas fa-microchip w-5 text-center mr-2 text-highlight"></i> Language & Compiler Design</p>
+                                    <p class="text-sm"><i class="fas fa-microchip w-5 text-center mr-2 text-highlight"></i> OS & Kernel Development</p>
                                     <p class="text-sm"><i class="fas fa-brain w-5 text-center mr-2 text-highlight"></i> Algorithmic Problem-Solving</p>
                                 </div>
                             </div>
