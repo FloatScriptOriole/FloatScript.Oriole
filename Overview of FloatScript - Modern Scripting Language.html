@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloatScript - Modern Scripting Language</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Custom Tailwind CSS configuration
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode via class
+            theme: {
+                extend: {
+                    colors: {
+                        'glass-white': 'rgba(255, 255, 255, 0.85)',
+                        'glass-border': 'rgba(255, 255, 255, 0.6)',
+                        'dark-glass': 'rgba(42, 53, 72, 0.75)',
+                        'dark-glass-border': 'rgba(74, 85, 104, 0.6)',
+                        'primary': '#4FD1C5',
+                        'secondary': '#9F7AEA',
+                        'accent': '#38B2AC',
+                        'dark': '#1A202C',
+                        'light': '#F7FAFC',
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'mono': ['Fira Code', 'monospace'],
+                    },
+                    animation: {
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                        'floating': 'floating 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        'gradient-x': {
+                            '0%, 100%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'left center'
+                            },
+                            '50%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'right center'
+                            }
+                        },
+                        'floating': {
+                            '0%': { transform: 'translate(0, 0px)' },
+                            '50%': { transform: 'translate(0, 15px)' },
+                            '100%': { transform: 'translate(0, -0px)' }
+                        },
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base body styles for light and dark modes */
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease;
+        }
+        .dark body {
+            background: linear-gradient(135deg, #1A202C 0%, #2D3748 100%);
+        }
+        
+        /* Glassmorphism panel styles for light and dark modes */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+        .dark .glass-panel {
+            background: var(--dark-glass);
+            border: 1px solid var(--dark-glass-border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+        }
+        
+        /* Navigation glass styles */
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .dark .nav-glass {
+            background: rgba(26, 32, 44, 0.9);
+            border-bottom: 1px solid var(--dark-glass-border);
+        }
+
+        /* Hero background gradient */
+        .hero-bg {
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 70%),
+                        linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+        }
+        .dark .hero-bg {
+             background: radial-gradient(ellipse at center, rgba(0,0,0,0) 0%, #1A202C 70%),
+                        linear-gradient(135deg, #2D3748 0%, #1A202C 100%);
+        }
+
+        /* Custom code block font */
+        .code-block {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Gradient text for headings */
+        .gradient-text {
+            background: linear-gradient(135deg, #4FD1C5 0%, #9F7AEA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Floating animation for decorative elements */
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        /* Typing animation for hero code block */
+        .animate-typing {
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+            overflow: hidden;
+            white-space: nowrap;
+            border-right: .15em solid #4FD1C5;
+            margin: 0 auto;
+            letter-spacing: .1em;
+        }
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #4FD1C5 }
+        }
+
+        /* Scrollbar hiding utility */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+
+<body class="antialiased text-gray-800 dark:text-gray-200" x-data="{ mobileMenuOpen: false, darkMode: false }" :class="{ 'dark': darkMode }" @keydown.escape.window="mobileMenuOpen = false">
+
+    <nav class="nav-glass fixed w-full z-50 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center">
+                    <a href="#" class="flex-shrink-0 flex items-center space-x-2">
+                        <div class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center transition-transform hover:scale-110">
+                            <span class="text-white font-bold text-xl">F</span>
+                        </div>
+                        <span class="text-xl font-bold text-gray-800 dark:text-white">FloatScript</span>
+                    </a>
+                </div>
+                
+                <div class="hidden md:flex md:items-center md:space-x-8">
+                    <a href="#overview" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium px-3 py-2 rounded-md text-base">Overview</a>
+                    <a href="#bytecode" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium px-3 py-2 rounded-md text-base">Bytecode</a>
+                    <a href="#compiler" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium px-3 py-2 rounded-md text-base">Compiler</a>
+                    <a href="#terminal" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium px-3 py-2 rounded-md text-base">Terminal</a>
+                    <a href="#performance" class="text-gray-600 dark:text-gray-300 hover:text-primary dark:hover:text-primary transition-colors font-medium px-3 py-2 rounded-md text-base">Performance</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button @click="darkMode = !darkMode" class="p-3 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" aria-label="Toggle Dark Mode">
+                        <i class="fas fa-moon" x-show="!darkMode"></i>
+                        <i class="fas fa-sun" x-show="darkMode"></i>
+                    </button>
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/How%20to%20Code%20in%20FloatScript.html" class="px-5 py-3 bg-primary hover:bg-opacity-90 text-white font-medium rounded-lg transition-all duration-300 hidden md:block transform hover:scale-105">
+                        Get Started
+                    </a>
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden inline-flex items-center justify-center p-3 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Open main menu</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="mobileMenuOpen ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-1" class="md:hidden fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50" id="mobile-menu">
+            <div class="px-4 pt-2 pb-4 space-y-2 sm:px-5 glass-panel rounded-lg mx-4 w-full max-w-sm">
+                <a href="#overview" @click="mobileMenuOpen = false" class="block px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-center">Overview</a>
+                <a href="#bytecode" @click="mobileMenuOpen = false" class="block px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-center">Bytecode</a>
+                <a href="#compiler" @click="mobileMenuOpen = false" class="block px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-center">Compiler</a>
+                <a href="#terminal" @click="mobileMenuOpen = false" class="block px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-center">Terminal</a>
+                <a href="#performance" @click="mobileMenuOpen = false" class="block px-4 py-3 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 text-center">Performance</a>
+                <div class="pt-4 mt-2 border-t border-gray-200 dark:border-gray-600">
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/How%20to%20Code%20in%20FloatScript.html" class="block w-full px-5 py-3 bg-primary hover:bg-opacity-90 text-white rounded-lg transition-colors text-center">
+                        Get Started
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <section class="hero-bg min-h-screen flex items-center justify-center pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-7xl mx-auto w-full">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <div data-aos="fade-right" class="text-center md:text-left">
+                        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 text-dark dark:text-light">Modern Coding with <span class="gradient-text">FloatScript</span></h1>
+                        <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-xl mx-auto md:mx-0 mb-8">A dynamically typed, interpreted scripting language designed for simplicity and performance, featuring a unique self-hosted compiler architecture.</p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 justify-center md:justify-start">
+                            <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="px-6 py-4 sm:px-8 bg-primary hover:bg-opacity-90 text-white font-semibold rounded-lg transition-transform hover:scale-105 shadow-lg flex items-center justify-center min-h-[44px]">
+                                <i class="fas fa-book mr-2"></i> Read Documentation
+                            </a>
+                            <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/How%20to%20Code%20in%20FloatScript.html" class="px-6 py-4 sm:px-8 border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold rounded-lg transition-colors flex items-center justify-center min-h-[44px]">
+                                <i class="fas fa-terminal mr-2"></i> Try Online
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-panel rounded-xl p-2 sm:p-4 mx-auto w-full max-w-full" data-aos="fade-left">
+                        <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                            <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                            <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                            <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                            <div class="flex-grow text-center text-gray-400 text-sm font-mono">fibonacci.flt</div>
+                        </div>
+                        <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code><span class="text-purple-400">fn</span> <span class="text-yellow-300">fibonacci</span> {
+    <span class="text-gray-500">// Assumes 'n' is in scope</span>
+    <span class="text-purple-400">if</span> _n < 2_ {
+        .rt { n }
+    }
+    
+    <span class="text-blue-400">lex</span> n_minus_1 = n - 1
+    <span class="text-blue-400">lex</span> n_minus_2 = n - 2
+    
+    <span class="text-gray-500">// Recursive call would need more setup</span>
+    <span class="text-gray-500">// For now, this is conceptual syntax</span>
+    .rt { n_minus_1 + n_minus_2 } <span class="text-gray-500">// Simplified</span>
+}
+
+<span class="text-green-500">// Print first 5 Fibonacci-like numbers</span>
+<span class="text-purple-400">for</span> i <span class="text-purple-400">from</span> 0 <span class="text-purple-400">to</span> 4 {
+    <span class="text-blue-400">lex</span> n = i
+    fibonacci <span class="text-gray-500">// conceptually call function</span>
+    std::out last_return_value
+}
+</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">Why Choose FloatScript?</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">Designed with simplicity, performance, and developer experience in mind.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                    <div class="glass-panel rounded-xl p-6 sm:p-8 flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="0">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-primary bg-opacity-10 dark:bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-bolt text-primary text-2xl sm:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-dark dark:text-light">High Performance</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Efficient bytecode execution with a stack-based virtual machine architecture ensures your scripts run fast.</p>
+                    </div>
+                    
+                    <div class="glass-panel rounded-xl p-6 sm:p-8 flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="100">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-secondary bg-opacity-10 dark:bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-cogs text-secondary text-2xl sm:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-dark dark:text-light">Extensible Libraries</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Includes libraries for memory management (`mem`), filesystems (`fs`), I/O (`io`), and more, right out of the box.</p>
+                    </div>
+                    
+                    <div class="glass-panel rounded-xl p-6 sm:p-8 flex flex-col items-center text-center" data-aos="fade-up" data-aos-delay="200">
+                        <div class="w-14 h-14 sm:w-16 sm:h-16 bg-accent bg-opacity-10 dark:bg-opacity-20 rounded-full flex items-center justify-center mb-4">
+                            <i class="fas fa-lightbulb text-accent text-2xl sm:text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-dark dark:text-light">Easy to Learn</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Clean, intuitive syntax and comprehensive documentation make learning FloatScript a breeze for beginners and experts alike.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="overview" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-light dark:bg-dark transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">Architecture Overview</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">Understanding the FloatScript execution model from source to execution.</p>
+                </div>
+                
+                <div class="glass-panel rounded-xl p-6 sm:p-8 mb-10 sm:mb-12" data-aos="fade-up">
+                    <p class="text-lg mb-6 text-dark dark:text-light">FloatScript is a dynamically typed, interpreted scripting language designed for simplicity and ease of use. Its execution model relies on a virtual machine (VM) that processes a compact, efficient bytecode representation of the source code.</p>
+                    <p class="text-lg text-dark dark:text-light">This architecture, encompassing a lexer, parser, compiler, and virtual machine, provides profound insights into compiler design. The addition of Ahead-of-Time (AOT) and Just-in-Time (JIT) compilation offers flexible performance tuning for any task.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div data-aos="fade-right">
+                        <h3 class="text-2xl font-semibold mb-6 text-dark dark:text-light">The Execution Pipeline</h3>
+                        <ul class="space-y-6">
+                            <li class="flex items-start">
+                                <div class="bg-primary rounded-full p-3 mr-4 shadow-md flex-shrink-0">
+                                    <i class="fas fa-font text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-lg text-dark dark:text-light">1. Lexical Analysis</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">Source code is broken down into a stream of tokens (e.g., keywords, identifiers, operators).</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-secondary rounded-full p-3 mr-4 shadow-md flex-shrink-0">
+                                    <i class="fas fa-project-diagram text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-lg text-dark dark:text-light">2. Parsing</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">Tokens are transformed into an Abstract Syntax Tree (AST), representing the code's structure.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-accent rounded-full p-3 mr-4 shadow-md flex-shrink-0">
+                                    <i class="fas fa-cogs text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-lg text-dark dark:text-light">3. Compilation</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">The AST is traversed and converted into a series of compact bytecode instructions.</p>
+                                </div>
+                            </li>
+                            <li class="flex items-start">
+                                <div class="bg-purple-500 rounded-full p-3 mr-4 shadow-md flex-shrink-0">
+                                    <i class="fas fa-microchip text-white text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-lg text-dark dark:text-light">4. Execution</h4>
+                                    <p class="text-gray-600 dark:text-gray-300">The bytecode is executed by the stack-based FloatScript Virtual Machine (VM).</p>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div data-aos="fade-left" class="flex justify-center">
+                        <div class="glass-panel rounded-xl p-2 sm:p-4 w-full max-w-full">
+                            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                                <div class="flex-grow text-center text-gray-400 text-sm font-mono">factorial.flt</div>
+                            </div>
+                            <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code><span class="text-purple-400">fn</span> <span class="text-yellow-300">factorial</span> {
+    <span class="text-purple-400">if</span> _n == 0_ {
+        .rt { 1 }
+    }
+    <span class="text-blue-400">lex</span> next_n = n - 1
+    <span class="text-gray-500">// Recursive call is complex; this is a conceptual example</span>
+    <span class="text-blue-400">lex</span> recursive_result = next_n <span class="text-gray-500">// Pretend factorial(next_n) returns here</span>
+    .rt { n * recursive_result }
+}
+
+<span class="text-blue-400">lex</span> n = 5
+factorial <span class="text-gray-500">// Call with n=5 in scope</span>
+<span class="text-blue-400">lex</span> result = last_return_value
+std::out '5! = '
+std::out result</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bytecode" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">Bytecode Architecture</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">The efficient intermediate representation that powers the VM.</p>
+                </div>
+                
+                <div class="glass-panel rounded-xl p-6 sm:p-8 mb-10 sm:mb-12" data-aos="fade-up">
+                    <p class="text-lg mb-6 text-dark dark:text-light">FloatScript programs are not executed directly; they are first compiled into an intermediate representation known as bytecode. This bytecode is a set of simple, platform-independent instructions that are executed by the FloatScript Virtual Machine (VM).</p>
+                    <p class="text-lg text-dark dark:text-light">The instruction set is designed to be lean yet powerful, enabling efficient execution. The VM is a stack-based machine, meaning it performs operations by pushing values onto and popping them off a central data structure: the operand stack.</p>
+                </div>
+                
+                <div class="overflow-x-auto glass-panel rounded-xl" data-aos="fade-up">
+                    <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                        <thead class="bg-gray-50 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Opcode Name</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Description</th>
+                                <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Operands</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white dark:bg-gray-800/50 divide-y divide-gray-200 dark:divide-gray-700">
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_CONSTANT</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pushes a constant value from the constant pool onto the stack.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">constant_index (1 byte)</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_ADD</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pops two numbers from the stack, adds them, and pushes the result back.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_SUBTRACT</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pops two numbers, subtracts the top from the second, pushes the result.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_MULTIPLY</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pops two numbers, multiplies them, and pushes the result.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_GET_GLOBAL</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Gets a global variable's value and pushes it onto the stack.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">constant_index (for var name)</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_SET_GLOBAL</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Sets a global variable to the value at the top of the stack (does not pop).</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">constant_index (for var name)</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_PRINT</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pops the top value from the stack and prints it to the console.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                             <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_POP</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Pops and discards the top value from the stack.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap font-mono text-sm text-primary">OP_RETURN</td>
+                                <td class="px-4 sm:px-6 py-4 text-sm text-dark dark:text-light">Ends execution of the current function or program.</td>
+                                <td class="px-4 sm:px-6 py-4 whitespace-nowrap text-sm font-mono text-dark dark:text-light">None</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="compiler" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-light dark:bg-dark transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">AOT and JIT Compilation</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">Optimize performance with Ahead-of-Time and Just-in-Time compilation.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div data-aos="fade-right">
+                        <h3 class="text-2xl font-semibold mb-4 text-dark dark:text-light">Ahead-of-Time (AOT)</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">The AOT compiler translates FloatScript source code into bytecode, which is then run by the VM. This is ideal for production environments where startup performance and predictability are key.</p>
+                        
+                        <div class="glass-panel rounded-xl p-2 sm:p-4">
+                            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                                <div class="flex-grow text-center text-gray-400 text-sm font-mono">aot_example.flt</div>
+                            </div>
+                            <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code><span class="text-gray-500">// Compile a program into bytecode</span>
+<span class="text-purple-400">aot::compile</span> <span class="text-yellow-300">my_program</span> {
+    <span class="text-blue-400">lex</span> a = 10
+    <span class="text-blue-400">lex</span> b = 20
+    <span class="text-blue-400">lex</span> c = a + b
+    std::out c
+}
+
+<span class="text-gray-500">// Run the compiled program</span>
+<span class="text-purple-400">aot::run</span> <span class="text-yellow-300">my_program</span>
+<span class="text-green-500">> 30</span>
+
+<span class="text-gray-500">// Disassemble to view bytecode</span>
+<span class="text-purple-400">aot::dis</span> <span class="text-yellow-300">my_program</span>
+<span class="text-green-500">> --- Disassembly: my_program ---</span>
+<span class="text-green-500">> 0000 OP_CONSTANT 0 (10)</span>
+<span class="text-green-500">> 0002 OP_SET_GLOBAL 1 ('a')</span>
+<span class="text-green-500">> ... (and so on)</span>
+</code></pre>
+                        </div>
+                    </div>
+                    
+                    <div data-aos="fade-left">
+                        <h3 class="text-2xl font-semibold mb-4 text-dark dark:text-light">Just-in-Time (JIT)</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">JIT mode (simulated) allows for dynamic compilation of code blocks at runtime. This can provide performance boosts for frequently executed loops or functions within an interpreted session.</p>
+                        
+                        <div class="glass-panel rounded-xl p-2 sm:p-4">
+                            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                                <div class="flex-grow text-center text-gray-400 text-sm font-mono">jit_example.flt</div>
+                            </div>
+                            <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code><span class="text-gray-500">// Manually compile a routine</span>
+<span class="text-purple-400">jit::compile</span> <span class="text-yellow-300">heavy_math</span> {
+    <span class="text-blue-400">let</span> total = 0
+    <span class="text-purple-400">for</span> i <span class="text-purple-400">from</span> 1 <span class="text-purple-400">to</span> 1000 {
+        <span class="text-blue-400">lex</span> total = total + i
+    }
+    std::out total
+}
+
+<span class="text-gray-500">// Run the compiled JIT routine</span>
+<span class="text-purple-400">jit::run</span> <span class="text-yellow-300">heavy_math</span>
+<span class="text-green-500">> 500500</span>
+
+<span class="text-gray-500">// Enable auto-JIT for a block</span>
+<span class="text-purple-400">auto</span> <span class="text-yellow-300"><jit></span>
+<span class="text-purple-400">if</span> _true_ {
+    <span class="text-gray-500">// This block will be JIT-compiled</span>
+    std::out 'This is fast!'
+}
+</code></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="terminal" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900 transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">Terminal Usage</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">Getting started with FloatScript in your terminal is simple and intuitive.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                    <div data-aos="fade-right">
+                        <h3 class="text-2xl font-semibold mb-4 text-dark dark:text-light">Running the Interpreter (REPL)</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">To run the interactive FloatScript shell (Read-Eval-Print Loop), simply execute the interpreter binary.</p>
+                        
+                        <div class="glass-panel rounded-xl p-2 sm:p-4">
+                            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                            </div>
+                            <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code>$ ./floatscript_interpreter
+This is |floatscript.flt|...
+<span class="text-gray-500">></span> <span class="text-blue-400">lex</span> my_message = 'Hello, FloatScript!'
+<span class="text-gray-500">></span> std::out my_message
+<span class="text-green-500">Hello, FloatScript!</span>
+<span class="text-gray-500">></span> <span class="text-blue-400">lex</span> x = 10 + 5 * 2
+<span class="text-gray-500">></span> std::out x
+<span class="text-green-500">20</span>
+<span class="text-gray-500">></span> exit</code></pre>
+                        </div>
+                        <p class="text-gray-600 dark:text-gray-300 mt-6">This will show a prompt. You can also include libraries by typing <code class="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded-md font-mono">#include &lt;fs, mem&gt;</code>.</p>
+                    </div>
+                    
+                    <div data-aos="fade-left">
+                        <h3 class="text-2xl font-semibold mb-4 text-dark dark:text-light">Running Script Files</h3>
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">To execute a FloatScript file (e.g., `myscript.flt`), pass it as an argument to the interpreter.</p>
+                        
+                        <div class="glass-panel rounded-xl p-2 sm:p-4 mb-6">
+                            <div class="bg-gray-800 rounded-t-lg p-3 flex items-center space-x-2">
+                                <div class="w-3.5 h-3.5 bg-red-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-yellow-500 rounded-full"></div>
+                                <div class="w-3.5 h-3.5 bg-green-500 rounded-full"></div>
+                            </div>
+                            <pre class="code-block bg-gray-900 text-gray-200 p-4 rounded-b-lg overflow-x-auto text-sm sm:text-base scrollbar-hide"><code>$ ./floatscript_interpreter myscript.flt
+<span class="text-green-500">Executing myscript.flt...</span>
+<span class="text-green-500">Hello from a FloatScript file!</span>
+<span class="text-green-500">Calculation result: 42</span>
+<span class="text-green-500">Script executed successfully.</span></code></pre>
+                        </div>
+                        
+                        <div class="bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 p-4 rounded-r-lg">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-info-circle text-blue-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-blue-700 dark:text-blue-300">
+                                        You may need to provide the full path to the interpreter, for example: <code class="bg-blue-100 dark:bg-blue-900/50 px-1 py-0.5 rounded-md font-mono">/home/ubuntu/floatscript_interpreter myscript.flt</code>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="performance" class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-light dark:bg-dark transition-colors duration-300">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center">
+                    <h2 class="text-3xl sm:text-4xl font-bold text-dark dark:text-light mb-4" data-aos="fade-up">Performance Advantages</h2>
+                    <p class="text-lg sm:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-12 sm:mb-16" data-aos="fade-up" data-aos-delay="100">Why FloatScript stands out from other scripting languages.</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+                    <div data-aos="fade-right">
+                        <div class="glass-panel rounded-xl p-6 sm:p-8">
+                            <h3 class="text-2xl font-semibold mb-6 text-dark dark:text-light">Architectural Strengths</h3>
+                            <div class="space-y-6">
+                                <div class="flex items-start">
+                                    <div class="bg-primary rounded-full p-3 mr-4 flex-shrink-0 shadow-md">
+                                        <i class="fas fa-layer-group text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-dark dark:text-light">Stack-Based VM</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Simplifies instruction logic, reduces register pressure, and leads to a smaller, more maintainable VM implementation.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="bg-secondary rounded-full p-3 mr-4 flex-shrink-0 shadow-md">
+                                        <i class="fas fa-compress-arrows-alt text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-dark dark:text-light">Bytecode Compactness</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">A small, focused set of opcodes reduces memory footprint and improves cache performance during execution.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start">
+                                    <div class="bg-accent rounded-full p-3 mr-4 flex-shrink-0 shadow-md">
+                                        <i class="fas fa-bolt text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-dark dark:text-light">Direct Compilation</h4>
+                                        <p class="text-gray-600 dark:text-gray-300">Moves directly from AST to bytecode without complex intermediate representations, speeding up the compilation phase.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div data-aos="fade-left">
+                        <div class="glass-panel rounded-xl p-6 sm:p-8">
+                            <h3 class="text-2xl font-semibold mb-6 text-center text-dark dark:text-light">Relative Performance Comparison</h3>
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium text-dark dark:text-light">FloatScript</span>
+                                        <span class="text-primary font-semibold">100%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                        <div class="bg-primary h-4 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium text-dark dark:text-light">Common Interpreted Language A</span>
+                                        <span class="text-gray-600 dark:text-gray-400">85%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                        <div class="bg-gray-400 dark:bg-gray-500 h-4 rounded-full" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span class="font-medium text-dark dark:text-light">Common Interpreted Language B</span>
+                                        <span class="text-gray-600 dark:text-gray-400">72%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                                        <div class="bg-gray-400 dark:bg-gray-500 h-4 rounded-full" style="width: 72%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-6 text-center">Benchmark results based on standard scripting language performance tests for arithmetic and function call overhead.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-primary to-secondary">
+            <div class="max-w-7xl mx-auto text-center">
+                <h2 class="text-3xl sm:text-4xl font-bold text-white mb-6" data-aos="fade-up">Ready to try FloatScript?</h2>
+                <p class="text-xl text-white text-opacity-90 max-w-3xl mx-auto mb-10" data-aos="fade-up" data-aos-delay="100">Join the community of developers building with FloatScript. Download the interpreter or dive into the documentation to get started today.</p>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4" data-aos="fade-up" data-aos-delay="200">
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="px-8 py-4 bg-white text-primary rounded-lg font-semibold hover:bg-opacity-90 transition-transform hover:scale-105 shadow-xl min-h-[44px] flex items-center justify-center">
+                        <i class="fas fa-download mr-2"></i> Download Now
+                    </a>
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="px-8 py-4 border-2 border-white text-white rounded-lg font-semibold hover:bg-white hover:text-primary transition-colors min-h-[44px] flex items-center justify-center">
+                        <i class="fas fa-book mr-2"></i> View Documentation
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white pt-16 pb-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div class="sm:col-span-2">
+                <div class="flex items-center space-x-3 mb-4">
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Oriole.html" class="w-10 h-10 bg-gradient-to-r from-primary to-secondary rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">F</span>
+                    </a>
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Oriole.html" class="text-xl font-bold">FloatScript</a>
+                </div>
+                <p class="text-gray-400">A modern scripting language designed for simplicity and performance, by Lusungu Luhana.</p>
+                <p class="text-gray-400 mt-2">Website designed by Alinaswe Sinkala.</p>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Resources</h3>
+                <ul class="space-y-2">
+                    <li><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="text-gray-400 hover:text-white transition-colors">Documentation</a></li>
+                    <li><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/How%20to%20Code%20in%20FloatScript.html" class="text-gray-400 hover:text-white transition-colors">Tutorials</a></li>
+                    <li><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="text-gray-400 hover:text-white transition-colors">Examples</a></li>
+                    <li><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/FloatScript.Oriole.html" class="text-gray-400 hover:text-white transition-colors">API Reference</a></li>
+                </ul>
+            </div>
+            
+            <div>
+                <h3 class="text-lg font-semibold mb-4 text-gray-200">Community</h3>
+                <ul class="space-y-2">
+                    <li><a href="https://github.com/FloatScriptOriole" class="text-gray-400 hover:text-white transition-colors">GitHub</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Discord</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Twitter</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="max-w-7xl mx-auto mt-12 pt-8 border-t border-gray-700 text-center text-gray-400">
+            <p>&copy; 2025 FloatScript. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <button id="backToTop" class="fixed bottom-6 right-6 w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center opacity-0 invisible transition-all duration-300 transform hover:scale-110">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        // Initialize AOS (Animate on Scroll) library
+        AOS.init({
+            duration: 800,
+            easing: 'ease-out-quad',
+            once: true // Animation happens only once
+        });
+        
+        // Logic for the "Back to Top" button
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.remove('opacity-0', 'invisible');
+                backToTopButton.classList.add('opacity-100', 'visible');
+            } else {
+                backToTopButton.classList.remove('opacity-100', 'visible');
+                backToTopButton.classList.add('opacity-0', 'invisible');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Smooth scrolling for all anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return; // Ignore empty hashes
+                
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    const navHeight = document.querySelector('nav').offsetHeight;
+                    window.scrollTo({
+                        top: targetElement.offsetTop - navHeight, // Offset for fixed nav
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Simple animation to draw attention to interactive elements
+        anime({
+            targets: '.glass-panel, .grid > div',
+            translateY: [20, 0],
+            opacity: [0, 1],
+            delay: anime.stagger(100, { start: 200 }),
+            duration: 1000,
+            easing: 'easeOutExpo'
+        });
+    </script>
+</body>
+</html>
