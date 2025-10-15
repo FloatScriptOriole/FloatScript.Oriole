@@ -378,9 +378,24 @@
                     FloatScript: A bold new coding language from the next generation, intuitive, powerful, and built by a 14-year-old visionary.
                 </p>
                 <div class="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-4 md:space-y-0 md:space-x-4">
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-8 py-4 rounded-full text-lg transition-transform transform-gpu hover:scale-105">
-                        <i class="fas fa-download mr-2"></i> Download
-                    </a>
+                    <div class="relative inline-block text-left" id="download-dropdown-container">
+                        <button id="download-dropdown-button" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-8 py-4 rounded-full text-lg transition-transform transform-gpu hover:scale-105 inline-flex items-center">
+                            <i class="fas fa-download mr-2"></i> Download
+                            <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                        <div id="download-dropdown-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg glass-container hidden ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                            <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="download-dropdown-button">
+                                <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip" class="flex items-center text-white block px-4 py-2 text-sm hover:bg-glass-blue-500 rounded-lg m-1 transition-colors" role="menuitem">
+                                    <i class="fab fa-windows w-5 mr-3"></i> Windows
+                                </a>
+                                <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip" class="flex items-center text-white block px-4 py-2 text-sm hover:bg-glass-blue-500 rounded-lg m-1 transition-colors" role="menuitem">
+                                    <i class="fab fa-linux w-5 mr-3"></i> Linux
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     <a href="#tutorial" class="btn glass-container text-white px-8 py-4 rounded-full text-lg transition-transform transform-gpu hover:scale-105">
                         <i class="fas fa-play mr-2"></i> Quick Start
                     </a>
@@ -438,7 +453,7 @@
             </div>
 
             <div class="glass-card p-8 md:p-12 flex flex-col md:flex-row-reverse items-center md:items-start space-y-8 md:space-y-0 md:space-x-12">
-                <img src="https://avatar.iran.liara.run/public/5?username=alinaswe" alt="Alinaswe Sinkala" class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-white transition-transform transform-gpu">
+                <img src="https://avatar.iran.liara.run/public/girl?username=alinaswe" alt="Alinaswe Sinkala" class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-white transition-transform transform-gpu">
                 <div class="text-center md:text-left">
                     <h3 class="text-2xl font-bold mb-2">Alinaswe Sinkala (15-Year-Old Web Developer)</h3>
                     <p class="text-sm opacity-60">Co-founder, Primary Tester, and Designer, Creator of this website</p>
@@ -830,10 +845,10 @@
                     <a href="#" class="btn bg-gray-500 text-white px-6 py-2 rounded-full text-sm cursor-not-allowed opacity-70">Coming in 2026</a>
                 </div>
                 <div class="glass-card p-6 text-center">
-                    <i class="fab fa-linux text-5xl text-glass-blue-400 mb-4"></i>
+                    <i class="fab fa-linux text-5xl text-red-500 mb-4"></i>
                     <h3 class="text-2xl font-bold mb-2">Linux</h3>
                     <p class="text-sm opacity-85 mb-4">For Ubuntu/Debian, Fedora, and Arch. Includes installer.</p>
-                    <a href="#" class="btn bg-gray-500 text-white px-6 py-2 rounded-full text-sm cursor-not-allowed opacity-70">Coming in 2026</a>
+                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip" class="btn bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full text-sm">Download .zip</a>
                 </div>
                 <div class="glass-card p-6 text-center">
                     <i class="fas fa-file-code text-5xl text-glass-blue-400 mb-4"></i>
@@ -919,10 +934,6 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            window.addEventListener('scroll', () => {
-                document.body.style.setProperty('--scroll-y', window.scrollY);
-            });
-
             // Binary Rain Effect (simplified)
             function createBinaryRain() {
                 const rainContainer = document.getElementById('binary-rain');
@@ -1002,7 +1013,7 @@
                         if (entry.isIntersecting) {
                             const section = entry.target;
                             anime({
-                                targets: section.querySelectorAll('.glass-card, h2, p, a, img, .flex'),
+                                targets: section.querySelectorAll('.glass-card, h2, p, a, img'),
                                 opacity: [0, 1],
                                 translateY: [50, 0],
                                 duration: 1000,
@@ -1180,6 +1191,23 @@
                 });
             }, { threshold: 0.5 });
             benchmarkObserver.observe(benchmarkChart);
+
+            // --- Hero Download Dropdown ---
+            const downloadButton = document.getElementById('download-dropdown-button');
+            const downloadMenu = document.getElementById('download-dropdown-menu');
+
+            if (downloadButton && downloadMenu) {
+                downloadButton.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    downloadMenu.classList.toggle('hidden');
+                });
+
+                window.addEventListener('click', (event) => {
+                    if (!downloadMenu.classList.contains('hidden') && !downloadButton.contains(event.target)) {
+                        downloadMenu.classList.add('hidden');
+                    }
+                });
+            }
 
 
             // --- Initialize Functions ---
