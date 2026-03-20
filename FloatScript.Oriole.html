@@ -1,1220 +1,1140 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<!--
+  FloatScript.Oriole — Official Website
+  ======================================
+  Built by: Alinaswe Sinkala, age 15 | Company Oriole
+
+  Firebase Setup:
+  ---------------
+  1. Go to https://console.firebase.google.com/
+  2. Open project "oriole-c6329"
+  3. Firestore > Rules > paste EXACTLY this (then click Publish):
+
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /{document=**} {
+           allow read, write: if true;
+         }
+       }
+     }
+
+     NOTE: The above opens the database fully so the site works immediately.
+     When you are ready to lock it down later, replace with the strict rules below
+     (but the simple rule above is fine for a public community site):
+
+     rules_version = '2';
+     service cloud.firestore {
+       match /databases/{database}/documents {
+         match /reviews/{id} {
+           allow read: true;
+           allow create: if request.resource.data.name is string
+                         && request.resource.data.comment is string;
+           allow update: true;
+           match /replies/{rid} {
+             allow read: true;
+             allow create: if request.resource.data.name is string
+                           && request.resource.data.comment is string;
+           }
+         }
+       }
+     }
+  4. Publish.
+-->
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FloatScript.Oriole - The 2026 Scripting Revolution</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'glass-blue-500': '#2563eb',
-                        'glass-blue-400': '#3b82f6',
-                        'glass-blue-600': '#1d4ed8',
-                        'dark-bg-start': '#08081a',
-                        'dark-bg-end': '#12122b',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['Fira Code', 'monospace'],
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        'flow': 'flow 20s linear infinite',
-                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
-                    },
-                    keyframes: {
-                        'fade-in-up': {
-                            '0%': { opacity: '0', transform: 'translateY(20px)' },
-                            '100%': { opacity: '1', transform: 'translateY(0)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-blur: 15px;
-            --main-text: #f8f9fa;
-            --blue-gradient-start: #2563eb;
-            --blue-gradient-end: #3b82f6;
-        }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FloatScript.Oriole — The Language That Grows With You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css"/>
+<!-- CodeMirror core + simple-mode must load BEFORE body scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/mode/simple.min.js"></script>
 
-        .glass-container {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px 0 rgba(0, 30, 60, 0.2), 0 0 20px rgba(0, 30, 60, 0.1);
-            border-radius: 16px;
-            transition: all 0.3s ease-out;
-            transform-style: preserve-3d;
-        }
-        
-        .glass-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01));
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), inset 0 0 10px rgba(255, 255, 255, 0.05);
-            border-radius: 16px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
-            will-change: transform, box-shadow; /* Performance Improvement */
-        }
-        
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
-            z-index: -1;
-            transition: opacity 0.3s ease;
-            will-change: opacity; /* Performance Improvement */
-        }
+<style>
+/* ── TOKENS ──────────────────────────────── */
+:root{
+  --M0:#103CE7;--M1:#64E9FF;
+  --L0:#2DFFF5;--L1:#FFF878;
+  --bg:#FFFFFF;--bg2:#F0F4FF;--bg3:#E6ECFF;
+  --tx:#0B1120;--mu:#64748B;
+  --cd:#FFFFFF;--bd:rgba(16,60,231,.1);
+  --nb:rgba(255,255,255,.84);
+  --ss:0 2px 14px rgba(16,60,231,.07);
+  --sm:0 8px 38px rgba(16,60,231,.13);
+  --sl:0 22px 62px rgba(16,60,231,.19);
+  --r:22px;--tr:all .32s cubic-bezier(.4,0,.2,1);
+  --fn:'Syne',sans-serif;--fm:'JetBrains Mono',monospace;
+}
+.dk{
+  --bg:#07101F;--bg2:#0C1528;--bg3:#101D36;
+  --tx:#E2E8F0;--mu:#94A3B8;
+  --cd:#0F1A30;--bd:rgba(100,233,255,.11);
+  --nb:rgba(7,16,31,.93);
+  --ss:0 2px 14px rgba(0,0,0,.5);--sm:0 8px 38px rgba(0,0,0,.55);--sl:0 22px 62px rgba(0,0,0,.65);
+}
 
-        .glass-card:hover {
-            transform: translateY(-8px) scale(1.02) rotateX(2deg);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 0 15px rgba(255, 255, 255, 0.1);
-        }
-        
-        .glass-card:hover::before {
-            opacity: 0.8;
-        }
+/* ── RESET ───────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fn);background:var(--bg);color:var(--tx);overflow-x:hidden;transition:background .4s,color .4s;line-height:1.65;}
+a{text-decoration:none;color:inherit;}
+button{cursor:pointer;font-family:var(--fn);border:none;background:none;}
+::selection{background:rgba(16,60,231,.18);}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-thumb{background:linear-gradient(var(--M0),var(--M1));border-radius:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
 
-        .animated-bg-gradient {
-            background: linear-gradient(135deg, var(--dark-bg-start), var(--dark-bg-end));
-            background-attachment: fixed;
-        }
+/* ── UTIL ────────────────────────────────── */
+.gm{background:linear-gradient(135deg,var(--M0),var(--M1));}
+.gl{background:linear-gradient(135deg,var(--L0),var(--L1));}
+.tm{background:linear-gradient(135deg,var(--M0),var(--M1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.tl{background:linear-gradient(135deg,var(--L0),var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.rv{opacity:0;transform:translateY(38px);transition:opacity .6s ease,transform .6s ease;}
+.rv.on{opacity:1;transform:none;}
+.rv.d1{transition-delay:.08s;}.rv.d2{transition-delay:.16s;}.rv.d3{transition-delay:.24s;}.rv.d4{transition-delay:.32s;}
+section{padding:6.5rem 2rem;}
+.wrap{max-width:1280px;margin:0 auto;}
+.stag{display:inline-flex;align-items:center;gap:.4rem;font-size:.72rem;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--M0);margin-bottom:.7rem;}
+.dk .stag{color:var(--L0);}
+.stitle{font-size:clamp(2rem,3.8vw,3rem);font-weight:800;letter-spacing:-1.2px;line-height:1.13;margin-bottom:.7rem;}
+.ssub{font-size:.93rem;color:var(--mu);max-width:480px;line-height:1.72;}
 
-        .glass-text-gradient {
-            background: linear-gradient(90deg, var(--blue-gradient-start), var(--blue-gradient-end));
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            color: var(--main-text);
-            background-color: var(--dark-bg-start);
-            overflow-x: hidden;
-            position: relative;
-        }
-        
-        .background-animated-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: -10;
-        }
-        
-        .background-animated-container::before, .background-animated-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0.1;
-            background-size: 100px 100px;
-            animation: flow 40s linear infinite;
-        }
-        
-        .background-animated-container::before {
-            background-image: radial-gradient(circle, rgba(60, 150, 255, 0.3) 1px, transparent 1px);
-        }
+/* ── BUTTONS ─────────────────────────────── */
+.bm{display:inline-flex;align-items:center;gap:.5rem;padding:.78rem 1.9rem;border-radius:60px;font-size:.92rem;font-weight:700;background:linear-gradient(135deg,var(--M0),var(--M1));color:#fff;transition:var(--tr);box-shadow:0 4px 18px rgba(16,60,231,.28);}
+.bm:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(16,60,231,.42);}
+.bl{display:inline-flex;align-items:center;gap:.5rem;padding:.78rem 1.9rem;border-radius:60px;font-size:.92rem;font-weight:700;background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;transition:var(--tr);box-shadow:0 4px 18px rgba(45,255,245,.28);}
+.bl:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(45,255,245,.42);}
+.bg{display:inline-flex;align-items:center;gap:.5rem;padding:.76rem 1.8rem;border-radius:60px;font-size:.92rem;font-weight:700;background:transparent;color:var(--tx);border:2px solid var(--bd);transition:var(--tr);}
+.bg:hover{border-color:var(--M0);color:var(--M0);box-shadow:0 4px 18px rgba(16,60,231,.1);transform:translateY(-2px);}
 
-        .background-animated-container::after {
-            background-image: repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(30, 100, 200, 0.1) 49px, transparent 50px);
-            opacity: 0.05;
-            animation-duration: 60s;
-        }
-        
-        @keyframes flow {
-            from { background-position: 0 0; }
-            to { background-position: 100% 100%; }
-        }
-        
-        ::-webkit-scrollbar {
-            width: 8px;
-            background-color: #1e293b;
-        }
-        ::-webkit-scrollbar-thumb {
-            background-color: var(--glass-blue-400);
-            border-radius: 10px;
-            border: 2px solid #1e293b;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background-color: var(--glass-blue-500);
-        }
+/* ── NAV ─────────────────────────────────── */
+#nav{position:fixed;top:0;left:0;right:0;z-index:1000;height:68px;padding:0 2rem;background:var(--nb);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);border-bottom:1px solid var(--bd);transition:var(--tr);}
+.ni{max-width:1280px;width:100%;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.logo{font-size:1.22rem;font-weight:800;letter-spacing:-.3px;flex-shrink:0;background:linear-gradient(90deg,var(--M0),var(--L0) 55%,var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nl{display:flex;align-items:center;gap:1.8rem;list-style:none;}
+.nl a{font-size:.86rem;font-weight:600;color:var(--mu);transition:color .2s;position:relative;}
+.nl a::after{content:'';position:absolute;bottom:-5px;left:0;right:0;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--M0),var(--M1));transform:scaleX(0);transition:transform .25s;transform-origin:left;}
+.nl a:hover{color:var(--tx);}
+.nl a:hover::after{transform:scaleX(1);}
+.na{display:flex;align-items:center;gap:.65rem;}
+.ndl{padding:.44rem 1.2rem;border-radius:60px;font-size:.8rem;font-weight:700;background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;transition:var(--tr);box-shadow:0 2px 10px rgba(45,255,245,.3);}
+.ndl:hover{transform:translateY(-2px);box-shadow:0 5px 16px rgba(45,255,245,.42);}
+.dkb{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--mu);transition:var(--tr);}
+.dkb:hover{color:var(--tx);transform:rotate(18deg);}
+.hbg{display:none;flex-direction:column;gap:5px;padding:3px;}
+.hbg span{width:22px;height:2px;background:var(--tx);border-radius:2px;transition:var(--tr);}
+.mob{display:none;position:fixed;inset:0;z-index:999;background:var(--bg);flex-direction:column;align-items:center;justify-content:center;gap:2rem;}
+.mob.open{display:flex;}
+.mob a{font-size:1.65rem;font-weight:800;color:var(--tx);transition:all .2s;}
+.mob a:hover{background:linear-gradient(135deg,var(--M0),var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.mobx{position:absolute;top:1.5rem;right:1.5rem;font-size:1.4rem;color:var(--mu);}
 
-        .repl-code-highlighted {
-            color: #d4d4d4;
-        }
-        .repl-code-highlighted .comment { color: #6a9955; }
-        .repl-code-highlighted .string { color: #ce9178; }
-        .repl-code-highlighted .keyword { color: #569cd6; }
-        .repl-code-highlighted .operator { color: #d4d4d4; }
-        .repl-code-highlighted .number { color: #b5cea8; }
-        .repl-code-highlighted .function { color: #dcdcaa; }
+/* ── HERO ────────────────────────────────── */
+#hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:100px 2rem 4rem;position:relative;overflow:hidden;background:var(--bg);}
+.hglow{position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);width:920px;height:720px;border-radius:50%;background:radial-gradient(ellipse,rgba(16,60,231,.065) 0%,transparent 68%);pointer-events:none;}
+.dk .hglow{background:radial-gradient(ellipse,rgba(100,233,255,.08) 0%,transparent 68%);}
+.hdots{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(16,60,231,.14) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse 72% 62% at 50% 50%,black,transparent);}
+.dk .hdots{background-image:radial-gradient(circle,rgba(100,233,255,.11) 1px,transparent 1px);}
+#fxc{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.fx{position:absolute;font-family:var(--fm);font-size:.71rem;white-space:nowrap;pointer-events:none;user-select:none;opacity:0;padding:5px 10px;border-radius:8px;color:rgba(16,60,231,.2);background:rgba(16,60,231,.04);border:1px solid rgba(16,60,231,.07);}
+.dk .fx{color:rgba(100,233,255,.28);background:rgba(100,233,255,.05);border-color:rgba(100,233,255,.09);}
+.hbadge{display:inline-flex;align-items:center;gap:.5rem;padding:.36rem 1rem;border-radius:60px;background:linear-gradient(135deg,rgba(16,60,231,.07),rgba(100,233,255,.07));border:1px solid rgba(16,60,231,.16);font-size:.73rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--M0);margin-bottom:1.4rem;}
+.dk .hbadge{background:linear-gradient(135deg,rgba(16,60,231,.14),rgba(100,233,255,.14));border-color:rgba(100,233,255,.22);color:var(--L0);}
+.bdot{width:7px;height:7px;border-radius:50%;background:#22C55E;box-shadow:0 0 6px #22C55E;animation:pu 1.8s infinite;}
+@keyframes pu{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.45;transform:scale(.8);}}
+.htitle{font-size:clamp(2.8rem,7.5vw,5.8rem);font-weight:800;line-height:1.08;letter-spacing:-2.5px;color:var(--tx);margin-bottom:1.1rem;}
+.htitle .hl{background:linear-gradient(135deg,var(--M0),var(--M1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+#tw{display:block;min-height:2em;font-size:clamp(.95rem,2.2vw,1.3rem);font-weight:600;background:linear-gradient(135deg,var(--L0) 20%,var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.6rem;}
+.cur{display:inline-block;width:2.5px;height:1.1em;border-radius:2px;vertical-align:text-bottom;background:linear-gradient(var(--L0),var(--L1));animation:bl .65s infinite;}
+@keyframes bl{0%,100%{opacity:1;}50%{opacity:0;}}
+.hsub{font-size:.95rem;color:var(--mu);max-width:580px;margin:0 auto 2.5rem;font-weight:500;}
+.hctas{display:flex;gap:.9rem;justify-content:center;flex-wrap:wrap;}
+.sind{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.4rem;color:var(--mu);font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;animation:bob 2.2s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0);}50%{transform:translateX(-50%) translateY(9px);}}
 
-        #navbar.scrolled {
-            padding-top: 0.5rem;
-            padding-bottom: 0.5rem;
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+/* ── STATS BAR ───────────────────────────── */
+#sbar{padding:1.4rem 2rem;background:var(--bg2);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd);}
+.srow{max-width:1060px;margin:0 auto;display:flex;align-items:center;justify-content:space-around;gap:1rem;flex-wrap:wrap;}
+.spill{display:flex;align-items:center;gap:.85rem;background:var(--cd);border:1px solid var(--bd);border-radius:60px;padding:.58rem 1.35rem;box-shadow:var(--ss);transition:var(--tr);}
+.spill:hover{transform:translateY(-3px);box-shadow:var(--sm);}
+.spill i{font-size:1.05rem;}
+.spill strong{display:block;font-size:1.08rem;font-weight:800;}
+.spill span{font-size:.72rem;color:var(--mu);font-weight:600;}
 
-        /* --- UI ENHANCEMENTS & FIXES --- */
+/* ── WHY ─────────────────────────────────── */
+#why{background:var(--bg);}
+.wtop{display:grid;grid-template-columns:1fr 1fr;gap:4.5rem;align-items:center;margin-bottom:3.5rem;}
+.wvis{position:relative;border-radius:var(--r);overflow:hidden;aspect-ratio:4/3;background:linear-gradient(135deg,var(--M0),var(--M1));box-shadow:var(--sl);}
+.wvis-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:1.7rem;background:linear-gradient(to top,rgba(0,0,0,.52),transparent);}
+.wcard-big{background:rgba(255,255,255,.11);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:1.2rem 1.45rem;width:100%;color:#fff;}
+.wcard-big h4{font-size:.98rem;font-weight:700;margin-bottom:.3rem;}
+.wcard-big p{font-size:.8rem;opacity:.85;line-height:1.5;}
+.wmets{display:flex;gap:1.5rem;margin-top:.9rem;}
+.wmet strong{font-size:1.25rem;font-weight:800;display:block;}
+.wmet span{font-size:.7rem;opacity:.68;font-weight:600;}
+.wgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
+.wc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:1.7rem;transition:var(--tr);position:relative;overflow:hidden;}
+.wc::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(16,60,231,.04),transparent);opacity:0;transition:opacity .3s;}
+.wc:hover{transform:translateY(-8px);box-shadow:var(--sm);}
+.wc:hover::after{opacity:1;}
+.wi{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:#fff;margin-bottom:1.15rem;}
+.wc h3{font-size:1.02rem;font-weight:700;margin-bottom:.4rem;color:var(--tx);}
+.wc p{font-size:.84rem;color:var(--mu);line-height:1.68;}
+.wbadge{display:inline-flex;align-items:center;gap:.28rem;margin-top:.8rem;padding:.2rem .68rem;border-radius:60px;font-size:.68rem;font-weight:700;background:var(--bg2);color:var(--M0);border:1px solid var(--bd);}
+.dk .wbadge{color:var(--L0);}
 
-        /* 1. Navbar Spacing and Alignment Fix */
-        #navbar .container > div.hidden {
-            flex-grow: 1;
-            justify-content: center;
-        }
-        .nav-link {
-            padding: 0.5rem 0.75rem; /* Added padding for better click targets */
-            border-radius: 9999px; /* Rounded hover effect */
-        }
-        .nav-link:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        
-        /* 2. Hero Section Responsiveness and Polish */
-        #hero .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center; /* Center content on all screens */
-        }
-        @media (min-width: 768px) {
-            #hero .container {
-                flex-direction: row; /* Side-by-side on larger screens */
-                justify-content: space-between;
-                align-items: flex-start;
-                gap: 2rem;
-            }
-            #hero-elements {
-                max-width: 50%;
-                text-align: left;
-            }
-            #repl-container {
-                margin: 0;
-                flex-shrink: 0;
-            }
-        }
-        
-        /* 3. Improved Button Hover State */
-        .btn {
-            will-change: transform, background-color, box-shadow;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        .btn:hover {
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
-        }
+/* ── BENCHMARKS ──────────────────────────── */
+#benchmarks{background:var(--bg2);position:relative;overflow:hidden;}
+#benchmarks::before{content:'';position:absolute;top:-180px;right:-180px;width:580px;height:580px;border-radius:50%;background:radial-gradient(circle,rgba(45,255,245,.055) 0%,transparent 65%);pointer-events:none;}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem;}
+.bc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;transition:var(--tr);position:relative;overflow:hidden;}
+.bc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--L0),var(--L1));transform:scaleX(0);transition:transform .4s;}
+.bc:hover{transform:translateY(-8px);box-shadow:var(--sl);}
+.bc:hover::before{transform:scaleX(1);}
+.be{font-size:2.2rem;display:block;margin-bottom:.9rem;}
+.bn{font-size:3.8rem;font-weight:800;letter-spacing:-3px;display:block;background:linear-gradient(135deg,var(--L0),var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:.4rem;}
+.bl2{font-size:1.02rem;font-weight:700;color:var(--tx);margin-bottom:.3rem;}
+.bd2{font-size:.82rem;color:var(--mu);line-height:1.6;}
 
-        /* 4. Accessibility & Readability */
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-rendering: optimizeLegibility;
-        }
-        p, .text-sm, .text-lg {
-            line-height: 1.65; /* Improved line height */
-            color: rgba(248, 249, 250, 0.9); /* Slightly off-white for better readability */
-        }
-        
-        /* 5. Mobile Menu Fixes */
-        #mobile-menu {
-            transition: opacity 0.3s ease-in-out;
-        }
+/* ── CODE DEMO ───────────────────────────── */
+#code-demo{background:var(--bg);}
+.dlayout{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem;align-items:start;}
+.eshell{border-radius:var(--r);overflow:hidden;box-shadow:0 0 0 1px var(--bd),var(--sl);}
+.ebar{background:#1E1E2E;padding:.62rem 1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06);}
+.edots{display:flex;gap:6px;}
+.edots span{width:12px;height:12px;border-radius:50%;}
+.edots span:nth-child(1){background:#FF5F57;}
+.edots span:nth-child(2){background:#FFBD2E;}
+.edots span:nth-child(3){background:#28CA41;}
+.efn{font-family:var(--fm);font-size:.7rem;color:rgba(255,255,255,.32);}
+.rbtn{padding:.3rem .88rem;border-radius:60px;font-size:.76rem;font-weight:700;background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;transition:var(--tr);display:inline-flex;align-items:center;gap:.35rem;}
+.rbtn:hover{transform:scale(1.07);box-shadow:0 4px 14px rgba(45,255,245,.4);}
+.CodeMirror{height:300px;font-family:var(--fm)!important;font-size:.82rem!important;}
+.sbtns{display:flex;gap:.45rem;margin-top:1rem;flex-wrap:wrap;}
+.sbtn{padding:.28rem .82rem;border-radius:60px;font-size:.73rem;font-weight:700;background:var(--cd);border:1px solid var(--bd);color:var(--mu);transition:var(--tr);}
+.sbtn:hover,.sbtn.act{background:linear-gradient(135deg,var(--M0),var(--M1));color:#fff;border-color:transparent;}
+.cshell{border-radius:var(--r);overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.06),var(--sl);}
+.cbar{background:#161B22;padding:.62rem 1rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid rgba(255,255,255,.06);}
+.cbar i{color:rgba(255,255,255,.24);font-size:.82rem;}
+.cbar span{font-family:var(--fm);font-size:.7rem;color:rgba(255,255,255,.32);}
+#cout{background:#0D1117;padding:1.05rem 1.3rem;font-family:var(--fm);font-size:.8rem;min-height:220px;max-height:360px;overflow-y:auto;color:#58A6FF;line-height:1.9;}
+#cout .p{color:rgba(255,255,255,.18);}
+#cout .ok{color:#3FB950;}
+#cout .er{color:#F85149;}
+#cout .ln{display:block;animation:li .24s ease;}
+@keyframes li{from{opacity:0;transform:translateX(-5px);}to{opacity:1;transform:none;}}
 
-        /* 6. Performance Benchmark Bar Redesign */
-        .benchmark-container {
-            width: 100%;
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-            font-family: 'Inter', sans-serif;
-        }
-        .benchmark-bar {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            position: relative;
-        }
-        .benchmark-label {
-            width: 100px;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #a0aec0;
-            text-align: right;
-            flex-shrink: 0;
-        }
-        .benchmark-track {
-            flex-grow: 1;
-            height: 24px;
-            background-color: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-            overflow: hidden;
-            position: relative;
-        }
-        .benchmark-fill {
-            height: 100%;
-            border-radius: 6px;
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 1.2s cubic-bezier(0.25, 1, 0.5, 1);
-            position: relative;
-        }
-        .benchmark-bar:hover .benchmark-fill {
-            filter: brightness(1.15);
-        }
-        .benchmark-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
-            opacity: 0.5;
-        }
-        .benchmark-value {
-            font-family: 'Fira Code', monospace;
-            font-size: 0.875rem;
-            font-weight: 700;
-            min-width: 60px;
-        }
+/* ── VERSIONS ────────────────────────────── */
+#versions{background:var(--bg2);}
+.vgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.2rem;margin-top:3rem;}
+.vc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:1.55rem;transition:var(--tr);}
+.vc:hover{transform:translateY(-6px);box-shadow:var(--sm);}
+.vc.lat{border-color:transparent;background:linear-gradient(var(--cd),var(--cd)) padding-box,linear-gradient(135deg,var(--L0),var(--L1)) border-box;}
+.vico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--M0);margin-bottom:.95rem;background:var(--bg2);border:1px solid var(--bd);}
+.vc.lat .vico{background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;border-color:transparent;}
+.vyr{display:inline-block;padding:.17rem .58rem;border-radius:60px;font-size:.67rem;font-weight:700;margin-bottom:.38rem;background:var(--bg2);color:var(--mu);border:1px solid var(--bd);}
+.vc.lat .vyr{background:linear-gradient(135deg,rgba(45,255,245,.12),rgba(255,248,120,.12));color:var(--L0);border-color:rgba(45,255,245,.28);}
+.vc h3{font-size:.98rem;font-weight:800;color:var(--tx);margin-bottom:.28rem;}
+.vc p{font-size:.8rem;color:var(--mu);line-height:1.6;}
+.vdl{display:inline-flex;align-items:center;gap:.32rem;margin-top:.85rem;padding:.26rem .72rem;border-radius:60px;font-size:.7rem;font-weight:700;background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;}
+.vlk{display:flex;align-items:center;gap:.32rem;margin-top:.72rem;font-size:.72rem;color:var(--mu);font-weight:600;}
 
-        /* Color classes for bars */
-        .fill-floatscript { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
-        .fill-cpp { background: linear-gradient(90deg, #6b7280, #9ca3af); }
-        .fill-python { background: linear-gradient(90deg, #f59e0b, #fcd34d); }
-        .fill-javascript { background: linear-gradient(90deg, #ec4899, #f472b6); }
+/* ── DOWNLOAD ────────────────────────────── */
+#download{background:var(--bg);position:relative;overflow:hidden;}
+#download::before{content:'';position:absolute;bottom:-200px;left:-150px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(16,60,231,.04) 0%,transparent 65%);pointer-events:none;}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem;}
+.dc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;transition:var(--tr);position:relative;overflow:hidden;}
+.dc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(45,255,245,.04),transparent);opacity:0;transition:opacity .3s;}
+.dc:hover{transform:translateY(-10px);box-shadow:var(--sl);}
+.dc:hover::before{opacity:1;}
+.dico{font-size:2.9rem;display:block;margin-bottom:1rem;}
+.dc h3{font-size:1.1rem;font-weight:800;margin-bottom:.28rem;}
+.dc p{font-size:.83rem;color:var(--mu);margin-bottom:1.45rem;line-height:1.6;}
+.dbtn{display:inline-flex;align-items:center;gap:.44rem;padding:.7rem 1.45rem;border-radius:60px;font-size:.86rem;font-weight:700;background:linear-gradient(135deg,var(--L0),var(--L1));color:#0B1120;transition:var(--tr);box-shadow:0 4px 14px rgba(45,255,245,.22);}
+.dbtn:hover{transform:scale(1.06);box-shadow:0 8px 24px rgba(45,255,245,.4);}
+.dbtn.soon{background:var(--bg2);color:var(--mu);border:1px solid var(--bd);box-shadow:none;}
+.dbtn.soon:hover{transform:none;box-shadow:none;}
+.dfoot{text-align:center;margin-top:2.5rem;}
+.dnote{margin-top:1.15rem;font-size:.8rem;color:var(--mu);}
+.dnote i{color:var(--M0);}
 
-        /* Animation Keyframe for bar fill */
-        @keyframes fill-bar {
-            to { transform: scaleX(1); }
-        }
-        .benchmark-container.in-view .benchmark-fill {
-            animation: fill-bar 1.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-    </style>
+/* ── TEAM ────────────────────────────────── */
+#team{background:var(--bg2);}
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:2rem;max-width:860px;margin-top:3rem;}
+.tc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:2rem;transition:var(--tr);position:relative;overflow:hidden;}
+.tc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--M0),var(--M1));}
+.tc.b::before{background:linear-gradient(90deg,var(--L0),var(--L1));}
+.tc:hover{transform:translateY(-8px);box-shadow:var(--sl);}
+.tava{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:800;color:#fff;position:relative;flex-shrink:0;}
+.tring{position:absolute;inset:-3px;border-radius:50%;z-index:-1;}
+.thead{display:flex;align-items:center;gap:1rem;margin-bottom:.9rem;}
+.tname{font-size:1.18rem;font-weight:800;color:var(--tx);}
+.trole{font-size:.78rem;font-weight:700;margin-top:.1rem;}
+.tbio{font-size:.84rem;color:var(--mu);line-height:1.7;margin-bottom:1.2rem;}
+.tstats{display:flex;gap:.7rem;margin-bottom:1.35rem;}
+.tst{flex:1;background:var(--bg2);border:1px solid var(--bd);border-radius:13px;padding:.6rem .7rem;text-align:center;}
+.tsn{font-size:1.05rem;font-weight:800;color:var(--tx);}
+.tsl{font-size:.66rem;color:var(--mu);font-weight:600;}
+
+/* ── REVIEWS ─────────────────────────────── */
+#reviews{background:var(--bg);}
+.rlayout{display:grid;grid-template-columns:380px 1fr;gap:2.5rem;align-items:start;margin-top:3rem;}
+.rform{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:2rem;position:sticky;top:82px;}
+.rform h3{font-size:.98rem;font-weight:700;margin-bottom:1.2rem;color:var(--tx);}
+.fg{display:flex;flex-direction:column;gap:.32rem;margin-bottom:.8rem;}
+.fg label{font-size:.73rem;font-weight:700;color:var(--mu);letter-spacing:.3px;}
+.fg input,.fg textarea{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:.62rem .92rem;font-family:var(--fn);font-size:.86rem;color:var(--tx);transition:border-color .2s;resize:vertical;}
+.fg input:focus,.fg textarea:focus{outline:none;border-color:var(--M0);}
+.subbtn{width:100%;padding:.72rem;border-radius:60px;font-size:.88rem;font-weight:700;background:linear-gradient(135deg,var(--M0),var(--M1));color:#fff;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:.5rem;}
+.subbtn:hover{box-shadow:0 6px 20px rgba(16,60,231,.35);transform:translateY(-2px);}
+.modn{display:flex;align-items:center;gap:.38rem;font-size:.72rem;color:var(--mu);margin-top:.7rem;}
+.rlist{display:flex;flex-direction:column;gap:1.05rem;}
+.ri{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:1.45rem;transition:var(--tr);}
+.ri:hover{box-shadow:var(--ss);}
+.rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:.7rem;}
+.rauthor{display:flex;align-items:center;gap:.72rem;}
+.rava{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:linear-gradient(135deg,var(--M0),var(--M1));display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:.82rem;}
+.rnm{font-weight:700;font-size:.9rem;color:var(--tx);}
+.rts{font-size:.7rem;color:var(--mu);}
+.rbody{font-size:.86rem;color:var(--mu);line-height:1.7;margin-bottom:.72rem;}
+.racts{display:flex;align-items:center;gap:.88rem;}
+.lbtn{display:inline-flex;align-items:center;gap:.3rem;padding:.26rem .7rem;border-radius:60px;font-size:.76rem;font-weight:600;background:var(--bg2);border:1px solid var(--bd);color:var(--mu);transition:var(--tr);}
+.lbtn:hover,.lbtn.lk{background:rgba(239,68,68,.08);border-color:rgba(239,68,68,.25);color:#EF4444;}
+.rtog{font-size:.76rem;font-weight:600;color:var(--M0);transition:opacity .2s;}
+.rtog:hover{opacity:.7;}
+.dk .rtog{color:var(--L0);}
+.rsec{margin-top:.88rem;padding-top:.88rem;border-top:1px solid var(--bd);}
+.repi{display:flex;gap:.62rem;margin-bottom:.62rem;padding:.62rem;background:var(--bg2);border-radius:11px;}
+.repnm{font-size:.75rem;font-weight:700;color:var(--tx);margin-bottom:.12rem;}
+.repb{font-size:.8rem;color:var(--mu);line-height:1.55;}
+.repf{display:flex;gap:.42rem;margin-top:.62rem;}
+.repf input{flex:1;background:var(--cd);border:1px solid var(--bd);border-radius:60px;padding:.42rem .9rem;font-family:var(--fn);font-size:.8rem;color:var(--tx);}
+.repf input:focus{outline:none;border-color:var(--M0);}
+.repsub{padding:.42rem .95rem;border-radius:60px;font-size:.76rem;font-weight:700;background:linear-gradient(135deg,var(--M0),var(--M1));color:#fff;transition:var(--tr);}
+.repsub:hover{transform:scale(1.05);}
+.loadm{display:block;margin:1.6rem auto 0;padding:.68rem 1.9rem;border-radius:60px;font-size:.86rem;font-weight:700;background:var(--cd);border:1px solid var(--bd);color:var(--mu);transition:var(--tr);}
+.loadm:hover{border-color:var(--M0);color:var(--M0);}
+.rempty{text-align:center;padding:2.8rem;color:var(--mu);font-size:.9rem;}
+.spinw{display:flex;justify-content:center;padding:2.5rem;}
+.spin{width:33px;height:33px;border:3px solid var(--bd);border-top-color:var(--M0);border-radius:50%;animation:sp .75s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg);}}
+
+/* ── FOOTER ──────────────────────────────── */
+footer{background:var(--bg2);border-top:1px solid var(--bd);padding:3.5rem 2rem 2rem;}
+.fi{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:3rem;}
+.fb h2{font-size:1.18rem;font-weight:800;margin-bottom:.5rem;background:linear-gradient(90deg,var(--M0),var(--L0));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.fb p{font-size:.82rem;color:var(--mu);line-height:1.7;max-width:225px;}
+.fsoc{display:flex;gap:.58rem;margin-top:.95rem;}
+.fs{width:34px;height:34px;border-radius:50%;background:var(--cd);border:1px solid var(--bd);display:flex;align-items:center;justify-content:center;color:var(--mu);font-size:.8rem;transition:var(--tr);}
+.fs:hover{background:linear-gradient(135deg,var(--M0),var(--M1));color:#fff;border-color:transparent;transform:translateY(-3px);}
+.fc h4{font-size:.82rem;font-weight:700;color:var(--tx);margin-bottom:.95rem;letter-spacing:.3px;}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:.48rem;}
+.fc ul a{font-size:.82rem;color:var(--mu);transition:color .2s;}
+.fc ul a:hover{color:var(--tx);}
+.fbot{max-width:1280px;margin:1.8rem auto 0;padding-top:1.4rem;border-top:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem;}
+.fbot p{font-size:.77rem;color:var(--mu);}
+.cred span{background:linear-gradient(135deg,var(--L0),var(--L1));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:700;}
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:1024px){
+  .wtop{grid-template-columns:1fr;}
+  .wvis{max-width:460px;}
+  .wgrid,.bgrid,.dgrid,.vgrid{grid-template-columns:repeat(2,1fr);}
+  .dlayout{grid-template-columns:1fr;}
+  .rlayout{grid-template-columns:1fr;}
+  .rform{position:static;}
+  .fi{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  .nl{display:none;}.ndl{display:none;}.hbg{display:flex;}
+  section{padding:4.5rem 1.25rem;}
+  .wgrid,.bgrid,.dgrid,.vgrid,.tgrid{grid-template-columns:1fr;}
+  .fi{grid-template-columns:1fr;}
+  .fbot{flex-direction:column;text-align:center;}
+  .htitle{letter-spacing:-1.5px;}
+}
+</style>
 </head>
-<body class="bg-dark-bg-start text-white overflow-x-hidden">
-    <div class="background-animated-container">
-        <div id="binary-rain" class="binary-rain absolute inset-0 opacity-10"></div>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="ni">
+    <a href="#hero" class="logo">FloatScript</a>
+    <ul class="nl">
+      <li><a href="#why">About</a></li>
+      <li><a href="#versions">Versions</a></li>
+      <li><a href="#download">Download</a></li>
+      <li><a href="#team">Team</a></li>
+      <li><a href="#reviews">Reviews</a></li>
+      <li><a href="https://floatscript-studio.gt.tc/" target="_blank">IDE <i class="fas fa-external-link-alt" style="font-size:.58em;"></i></a></li>
+    </ul>
+    <div class="na">
+      <a href="#download" class="ndl"><i class="fas fa-download"></i> Download Oriole</a>
+      <button class="dkb" id="dkb"><i class="fas fa-moon"></i></button>
+      <button class="hbg" id="hbg"><span></span><span></span><span></span></button>
     </div>
-    
-    <nav id="navbar" class="bg-white/10 backdrop-blur-lg backdrop-saturate-150 border border-white/15 shadow-xl sticky top-4 z-50 transition-all duration-500 mx-4 md:mx-10 rounded-full py-4">
-        <div class="container mx-auto flex items-center justify-between px-6">
-            <a href="#" class="font-mono text-xl font-bold transition-transform hover:scale-105" data-anime-target=".nav-link">
-                FloatScript<span class="text-glass-blue-500">.Oriole</span>
-            </a>
-            
-            <div class="hidden lg:flex items-center space-x-6">
-                <a href="#about" class="nav-link text-white hover:text-glass-blue-300 transition-colors duration-300">About</a>
-                <a href="#versions" class="nav-link text-white hover:text-glass-blue-300 transition-colors duration-300">Versions</a>
-                <a href="#features" class="nav-link text-white hover:text-glass-blue-300 transition-colors duration-300">Features</a>
-                <a href="#tutorial" class="nav-link text-white hover:text-glass-blue-300 transition-colors duration-300">Tutorial</a>
-                <a href="#download" class="nav-link text-white hover:text-glass-blue-300 transition-colors duration-300">Download</a>
-            </div>
+  </div>
+</nav>
+<div class="mob" id="mob">
+  <button class="mobx" id="mobx"><i class="fas fa-times"></i></button>
+  <a href="#why"      onclick="closeMob()">About</a>
+  <a href="#versions" onclick="closeMob()">Versions</a>
+  <a href="#download" onclick="closeMob()">Download</a>
+  <a href="#team"     onclick="closeMob()">Team</a>
+  <a href="#reviews"  onclick="closeMob()">Reviews</a>
+  <a href="https://floatscript-studio.gt.tc/" target="_blank">IDE</a>
+</div>
 
-            <div class="hidden lg:flex items-center">
-                 <button id="buy-button" class="btn text-white bg-glass-blue-500 hover:bg-glass-blue-600 px-6 py-2 rounded-full transition-all duration-300 transform-gpu hover:scale-105">
-                    Buy Now
-                </button>
-            </div>
-            
-            <button id="mobile-menu-button" class="lg:hidden text-2xl text-white z-10">
-                <i class="fas fa-bars"></i>
-            </button>
-        </div>
-    </nav>
-    
-    <div id="mobile-menu" class="fixed inset-0 flex flex-col items-center justify-center space-y-6 md:space-y-8 max-w-sm mx-auto bg-white/10 backdrop-blur-lg backdrop-saturate-150 border border-white/15 shadow-xl hidden opacity-0 scale-95 transition-all duration-500 ease-out z-40 p-4">
-        <button id="close-mobile-menu" class="absolute top-8 right-8 text-2xl sm:text-3xl text-white">
-            <i class="fas fa-times"></i>
-        </button>
-        <a href="#about" class="mobile-nav-link text-xl sm:text-2xl md:text-3xl text-white hover:text-glass-blue-400">About</a>
-        <a href="#versions" class="mobile-nav-link text-xl sm:text-2xl md:text-3xl text-white hover:text-glass-blue-400">Versions</a>
-        <a href="#features" class="mobile-nav-link text-xl sm:text-2xl md:text-3xl text-white hover:text-glass-blue-400">Features</a>
-        <a href="#tutorial" class="mobile-nav-link text-xl sm:text-2xl md:text-3xl text-white hover:text-glass-blue-400">Tutorial</a>
-        <a href="#download" class="mobile-nav-link text-xl sm:text-2xl md:text-3xl text-white hover:text-glass-blue-400">Download</a>
-        <button id="mobile-buy-button" class="btn text-white bg-glass-blue-500 hover:bg-glass-blue-600 px-6 py-3 sm:px-8 sm:py-4 text-xl rounded-full transition-all duration-300 transform-gpu hover:scale-105">
-            Buy Now
-        </button>
+<!-- HERO -->
+<section id="hero">
+  <div class="hglow"></div>
+  <div class="hdots"></div>
+  <div id="fxc"></div>
+  <div style="position:relative;z-index:2;text-align:center;max-width:880px;" class="rv">
+    <div class="hbadge"><span class="bdot"></span> Latest Release — FloatScript.Oriole</div>
+    <h1 class="htitle">The Language <span class="hl">Built by Teenagers,</span><br/>For Everyone.</h1>
+    <span id="tw"><span class="cur"></span></span>
+    <p class="hsub">Created by Lusungu Luhana · Co&#8209;founded with Alinaswe Sinkala · Now at Company Oriole.</p>
+    <div class="hctas">
+      <a href="#download" class="bm"><i class="fas fa-download"></i> Download Oriole</a>
+      <a href="https://floatscript-studio.gt.tc/" target="_blank" class="bg"><i class="fas fa-terminal"></i> Try in Browser</a>
     </div>
-    
-    <section id="hero" class="relative z-10 min-h-screen flex items-center animated-bg-gradient py-20 px-4 md:px-0">
-        <div class="container mx-auto text-center">
-            <div id="hero-elements" class="w-full">
-                <h1 id="hero-title" class="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 font-mono leading-tight glass-text-gradient min-h-[80px] md:min-h-[168px]">
-                    <span id="typing-demo"></span><span id="cursor" class="opacity-1 transition-opacity duration-500 ease-in-out">|</span>
-                </h1>
-                <p id="hero-subtitle" class="text-xl md:text-2xl font-light max-w-2xl mx-auto md:mx-0 mb-8 opacity-75">
-                    FloatScript: A bold new coding language from the next generation, intuitive, powerful, and built by a 15-year-old visionary.
-                </p>
-                <div class="flex flex-col md:flex-row items-center justify-center md:justify-start space-y-4 md:space-y-0 md:space-x-4">
-                    <div class="relative inline-block text-left" id="download-dropdown-container">
-                        <button id="download-dropdown-button" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-8 py-4 rounded-full text-lg transition-transform transform-gpu hover:scale-105 inline-flex items-center">
-                            <i class="fas fa-download mr-2"></i> Download
-                            <svg class="ml-2 -mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                            </svg>
-                        </button>
-                        <div id="download-dropdown-menu" class="origin-top-right absolute right-0 mt-2 w-56 rounded-lg shadow-lg glass-container hidden ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
-                            <div class="py-1" role="menu" aria-orientation="vertical" aria-labelledby="download-dropdown-button">
-                                <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip" class="flex items-center text-white block px-4 py-2 text-sm hover:bg-glass-blue-500 rounded-lg m-1 transition-colors" role="menuitem">
-                                    <i class="fab fa-windows w-5 mr-3"></i> Windows
-                                </a>
-                                <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip" class="flex items-center text-white block px-4 py-2 text-sm hover:bg-glass-blue-500 rounded-lg m-1 transition-colors" role="menuitem">
-                                    <i class="fab fa-linux w-5 mr-3"></i> Linux
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="#tutorial" class="btn glass-container text-white px-8 py-4 rounded-full text-lg transition-transform transform-gpu hover:scale-105">
-                        <i class="fas fa-play mr-2"></i> Quick Start
-                    </a>
-                </div>
-            </div>
-            
-            <div id="repl-container" class="mt-16 glass-container w-full max-w-3xl mx-auto md:mx-0 p-6">
-                <div class="flex items-center justify-between p-3 border-b border-gray-700">
-                    <h3 class="font-mono text-sm font-semibold">FloatScript REPL</h3>
-                    <div class="flex space-x-2">
-                        <span class="w-3 h-3 bg-red-500 rounded-full"></span>
-                        <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
-                        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
-                    </div>
-                </div>
-                <div class="p-4">
-                    <div id="repl-code" contenteditable="true" class="font-mono bg-white bg-opacity-5 p-4 rounded-lg overflow-x-auto focus:outline-none focus:ring-2 focus:ring-glass-blue-400 cursor-text repl-code-highlighted">
-                        <span class="comment">// Try me! Edit this code and click [Run]</span><br>
-                        <span class="keyword">lex</span> message = <span class="string">"Hello FloatScript!"</span><br>
-                        <span class="keyword">std</span><span class="operator">::</span><span class="function">out</span> message + <span class="string">" ❤️"</span>
-                    </div>
-                    <div class="flex justify-end mt-4">
-                        <button id="run-button" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-6 py-2 rounded-full transition-transform transform-gpu hover:scale-105">
-                            Run
-                        </button>
-                    </div>
-                    <div id="repl-output" class="font-mono bg-white bg-opacity-5 p-4 rounded-lg mt-4 border-l-4 border-glass-blue-500 overflow-x-auto min-h-[50px]">
-                        <span class="comment">// Output will appear here</span>
-                    </div>
-                </div>
-            </div>
+  </div>
+  <div class="sind"><i class="fas fa-chevron-down"></i><span>Scroll</span></div>
+</section>
+
+<!-- STATS BAR -->
+<div id="sbar">
+  <div class="srow">
+    <div class="spill rv d1"><i class="fas fa-bolt tm"></i><div><strong class="tm">+40%</strong><span>Faster than v1</span></div></div>
+    <div class="spill rv d2"><i class="fas fa-memory tl"></i><div><strong class="tl">−30%</strong><span>RAM Usage</span></div></div>
+    <div class="spill rv d3"><i class="fab fa-github tm"></i><div><strong class="tm">1 000+</strong><span>GitHub Stars</span></div></div>
+    <div class="spill rv d4"><i class="fas fa-code tl"></i><div><strong class="tl">JIT &amp; AOT</strong><span>Compilation</span></div></div>
+  </div>
+</div>
+
+<!-- WHY -->
+<section id="why">
+  <div class="wrap">
+    <div class="wtop">
+      <div class="rv">
+        <span class="stag"><i class="fas fa-circle" style="font-size:.48em;"></i> Why FloatScript?</span>
+        <h2 class="stitle">Problem → Solution → Process</h2>
+        <p class="ssub">From the frustrations of heavy runtimes to a language that just works — lightweight, expressive, and powerful out of the box.</p>
+        <div style="display:flex;gap:.85rem;margin-top:1.8rem;flex-wrap:wrap;">
+          <a href="#download" class="bm"><i class="fas fa-download"></i> Get Oriole</a>
+          <a href="#code-demo" class="bg"><i class="fas fa-play"></i> See Code</a>
         </div>
-    </section>
-
-    <section id="about" class="py-20 px-4 md:px-0 bg-dark-bg-end">
-        <div class="container mx-auto text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4">From a Teenager's Bedroom to Your Machine</h2>
-            <p class="text-lg mb-16 max-w-3xl mx-auto opacity-85">FloatScript was born from the frustration of a young programmer tired of unnecessary complexity in modern languages.</p>
-            
-            <div class="glass-card p-8 md:p-12 mb-12 flex flex-col md:flex-row items-center md:items-start space-y-8 md:space-y-0 md:space-x-12">
-                <img src="https://avatar.iran.liara.run/public/boy?username=lusungu" alt="Lusungu Luhana" class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-glass-blue-500 transform-gpu transition-transform">
-                <div class="text-center md:text-left">
-                    <h3 class="text-2xl font-bold mb-2">Lusungu Luhana (15-Year-Old Developer)</h3>
-                    <p class="text-sm opacity-60">CEO and Co-founder of Oriole, Creator of FloatScript</p>
-                    <blockquote class="my-6 text-lg italic opacity-85 relative pl-6 border-l-2 border-glass-blue-400">
-                        "I built FloatScript for programmers that want to learn programming quickly and intuitively"
-                    </blockquote>
-                    <p class="text-sm">Lusungu, CEO and co-founder of Oriole. At just 14 years old, Lusungu taught himself C++ by reading documentation and experimenting with compiler design. After becoming frustrated with the verbose nature of C++ and the dynamic typing issues of JavaScript, he began working on his own language. FloatScript is the culmination of his passion for elegant design and powerful, intuitive syntax.</p>
-                    <div class="flex justify-center md:justify-start flex-wrap mt-6 gap-4">
-                        <span class="flex items-center text-sm"><i class="fas fa-graduation-cap text-glass-blue-400 mr-2"></i> Self-taught since age 12</span>
-                        <span class="flex items-center text-sm"><i class="fas fa-code text-glass-blue-400 mr-2"></i> 5 language versions in 2025</span>
-                        <span class="flex items-center text-sm"><i class="fas fa-heart text-glass-blue-400 mr-2"></i> Passionate about coding</span>
-                    </div>
-                </div>
+      </div>
+      <div class="wvis rv d2">
+        <div class="wvis-inner">
+          <div class="wcard-big">
+            <h4>FloatScript.Oriole — Feature Snapshot</h4>
+            <p>JIT &amp; AOT compilation · async <code style="font-family:var(--fm);font-size:.88em;">init</code> functions · manual memory with <code style="font-family:var(--fm);font-size:.88em;">#include &lt;mem&gt;</code> · classes · vectors · bit ops · file I/O</p>
+            <div class="wmets">
+              <div class="wmet"><strong>+40%</strong><span>Faster</span></div>
+              <div class="wmet"><strong>−30%</strong><span>RAM</span></div>
+              <div class="wmet"><strong>7</strong><span>Libraries</span></div>
             </div>
-
-            <div class="glass-card p-8 md:p-12 flex flex-col md:flex-row-reverse items-center md:items-start space-y-8 md:space-y-0 md:space-x-12">
-                <img src="https://avatar.iran.liara.run/public/49?username=alinaswe" alt="Alinaswe Sinkala" class="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover border-4 border-white transition-transform transform-gpu">
-                <div class="text-center md:text-left">
-                    <h3 class="text-2xl font-bold mb-2">Alinaswe Sinkala (15-Year-Old Web Developer)</h3>
-                    <p class="text-sm opacity-60">Co-founder, Primary Tester, and Designer, Creator of this website</p>
-                    <p class="mt-6 text-sm">Alinaswe, a co-founder of Oriole, is the visionary behind the elegant and intuitive user interfaces for all Oriole projects, including FloatScript.Oriole. He has been the primary tester for every version of FloatScript, providing invaluable feedback that has shaped the language's usability. His meticulous design philosophy focuses on creating professional-grade, user-friendly experiences that remain true to the company's youthful and innovative spirit. He is a master of modern web technologies and the creative force ensuring the FloatScript brand identity is perfectly translated into every digital experience.</p>
-                    <div class="flex justify-center md:justify-start flex-wrap mt-6 gap-4">
-                        <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Oriole.html" class="flex items-center text-sm text-glass-blue-400 hover:text-white transition-colors"><i class="fas fa-external-link-alt mr-2"></i> Learn about Oriole</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="grid md:grid-cols-2 gap-8 mt-16 text-left">
-                <div class="glass-card p-8">
-                    <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-lightbulb text-glass-blue-400 mr-3"></i> Simplicity First</h3>
-                    <p class="opacity-85">FloatScript removes the ceremony of traditional languages, allowing you to focus on the logic. No semicolons, no curly braces, just clean, readable code.</p>
-                    <div class="bg-white bg-opacity-5 font-mono p-4 rounded-lg text-sm mt-4">
-                        <span class="keyword">lex</span> count = <span class="number">0</span><br>
-                        <span class="keyword">while</span> count &lt; <span class="number">5</span><br>
-                        <span class="keyword">std</span><span class="operator">::</span><span class="function">out</span> count<br>
-                        count = count + <span class="number">1</span>
-                    </div>
-                </div>
-                <div class="glass-card p-8">
-                    <h3 class="text-xl font-bold mb-4 flex items-center"><i class="fas fa-bolt text-glass-blue-400 mr-3"></i> Power When Needed</h3>
-                    <p class="opacity-85">Despite its simple syntax, FloatScript is built on a robust C++ core, giving you access to low-level performance and complex data structures when your project demands it.</p>
-                    <div class="bg-white bg-opacity-5 font-mono p-4 rounded-lg text-sm mt-4">
-                        <span class="keyword">func</span> fib(<span class="keyword">int</span> n)<br>
-                        &nbsp;&nbsp;<span class="keyword">if</span> n &lt;= <span class="number">1</span> <span class="keyword">return</span> n<br>
-                        &nbsp;&nbsp;<span class="keyword">return</span> fib(n-<span class="number">1</span>) + fib(n-<span class="number">2</span>)
-                    </div>
-                </div>
-            </div>
-            
-            <h3 class="text-3xl font-bold mt-16 mb-8">Why Developers Love FloatScript</h3>
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="glass-card p-6 flex flex-col items-center text-center">
-                    <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-2xl mb-4"><i class="fas fa-magic"></i></div>
-                    <h4 class="font-semibold text-lg mb-2">Intuitive Syntax</h4>
-                    <p class="text-sm opacity-75">Write less code to do more. FloatScript is designed to be read like plain English.</p>
-                </div>
-                <div class="glass-card p-6 flex flex-col items-center text-center">
-                    <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-2xl mb-4"><i class="fas fa-rocket"></i></div>
-                    <h4 class="font-semibold text-lg mb-2">Blazing Fast</h4>
-                    <p class="text-sm opacity-75">Compiled to native machine code for incredible performance. Zero-overhead design.</p>
-                </div>
-                <div class="glass-card p-6 flex flex-col items-center text-center">
-                    <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-2xl mb-4"><i class="fas fa-layer-group"></i></div>
-                    <h4 class="font-semibold text-lg mb-2">Modern Tooling</h4>
-                    <p class="text-sm opacity-75">Integrated package manager, REPL, and a powerful build system right out of the box.</p>
-                </div>
-                <div class="glass-card p-6 flex flex-col items-center text-center">
-                    <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-2xl mb-4"><i class="fas fa-cogs"></i></div>
-                    <h4 class="font-semibold text-lg mb-2">Growing Community</h4>
-                    <p class="text-sm opacity-75">Join a community of passionate developers and contribute to the future of the language.</p>
-                </div>
-            </div>
+          </div>
         </div>
-    </section>
-
-    <section id="versions" class="py-20 px-4 md:px-0 animated-bg-gradient">
-        <div class="container mx-auto">
-            <div class="text-center">
-                <h2 class="text-4xl md:text-5xl font-bold mb-4">The FloatScript Journey</h2>
-                <p class="text-lg mb-16 opacity-85 max-w-2xl mx-auto">A look back at our rapid evolution and an exciting glimpse into the future. Each version builds on the last, adding power and features while maintaining simplicity.</p>
-            </div>
-            
-            <div id="version-carousel" class="flex space-x-8 pb-4 overflow-x-auto snap-x snap-mandatory">
-                <div class="glass-card snap-start p-6 min-w-[280px] md:min-w-[350px] flex-shrink-0 relative">
-                    <span class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 bg-glass-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Free</span>
-                    <h3 class="text-xl font-bold mb-1">OptScript</h3>
-                    <p class="text-sm text-gray-400">January 15, 2025</p>
-                    <p class="mt-4 text-sm">Our initial offering, a basic scripting engine for simple tasks and educational purposes. A small but powerful core.</p>
-                    <ul class="list-disc list-inside mt-4 text-sm space-y-2 opacity-85">
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Core mathematical operators</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Integer and string variables</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Basic conditional statements</li>
-                    </ul>
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-2xl font-bold">$0.00</span>
-                        <a href="#download" class="btn bg-white bg-opacity-10 px-4 py-2 rounded-full text-sm hover:bg-opacity-20 transition-colors">Download</a>
-                    </div>
-                </div>
-
-                <div class="glass-card snap-start p-6 min-w-[280px] md:min-w-[350px] flex-shrink-0 relative">
-                    <span class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 bg-glass-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Free</span>
-                    <h3 class="text-xl font-bold mb-1">FloatScript v1</h3>
-                    <p class="text-sm text-gray-400">March 3, 2025</p>
-                    <p class="mt-4 text-sm">The first full release with a comprehensive feature set for general-purpose programming. It introduced functions and a standard library.</p>
-                    <ul class="list-disc list-inside mt-4 text-sm space-y-2 opacity-85">
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Functions and loops</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Object-oriented features</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Comprehensive standard library</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> File I/O support</li>
-                    </ul>
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-2xl font-bold">$0.00</span>
-                        <a href="#download" class="btn bg-white bg-opacity-10 px-4 py-2 rounded-full text-sm hover:bg-opacity-20 transition-colors">Download</a>
-                    </div>
-                </div>
-
-                <div class="glass-card snap-start p-6 min-w-[280px] md:min-w-[350px] flex-shrink-0 relative">
-                    <span class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Stable</span>
-                    <h3 class="text-xl font-bold mb-1">FloatScript v1.5</h3>
-                    <p class="text-sm text-gray-400">May 22, 2025 (current stable)</p>
-                    <p class="mt-4 text-sm">The current stable version. It offers significant performance improvements and added a native REPL for interactive coding and testing.</p>
-                    <ul class="list-disc list-inside mt-4 text-sm space-y-2 opacity-85">
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Native REPL environment</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Performance optimization</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Support for custom modules</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Enhanced error handling</li>
-                    </ul>
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-2xl font-bold">$1.00</span>
-                        <button class="btn bg-glass-blue-500 px-4 py-2 rounded-full text-sm hover:bg-glass-blue-600 transition-colors" data-version="v1.5">Purchase</button>
-                    </div>
-                </div>
-
-                <div class="glass-card snap-start p-6 min-w-[280px] md:min-w-[350px] flex-shrink-0 relative">
-                    <span class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full shadow-lg">Beta</span>
-                    <h3 class="text-xl font-bold mb-1">FloatScript v2 Beta</h3>
-                    <p class="text-sm text-gray-400">June 30, 2025</p>
-                    <p class="mt-4 text-sm">Our most ambitious update yet. This beta version introduces parallel computing support and a new native build system for streamlined project management.</p>
-                    <ul class="list-disc list-inside mt-4 text-sm space-y-2 opacity-85">
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Parallel processing support</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> New build system</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Advanced data types (Maps, Sets)</li>
-                    </ul>
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-2xl font-bold">$1.50</span>
-                        <button class="btn bg-glass-blue-500 px-4 py-2 rounded-full text-sm hover:bg-glass-blue-600 transition-colors" data-version="v2.0">Purchase</button>
-                    </div>
-                </div>
-
-                <div class="glass-card snap-start p-6 min-w-[280px] md:min-w-[350px] flex-shrink-0 relative">
-                    <span class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">Coming Soon</span>
-                    <h3 class="text-xl font-bold mb-1">FloatScript.Oriole</h3>
-                    <p class="text-sm text-gray-400">December 2025</p>
-                    <p class="mt-4 text-sm">The official production release. This version will feature a robust visual IDE, cross-platform compilation, and an open-source model.</p>
-                    <ul class="list-disc list-inside mt-4 text-sm space-y-2 opacity-85">
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Official visual IDE</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Cross-platform compilation</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> Full open-source access</li>
-                        <li><i class="fas fa-check-circle text-glass-blue-400 mr-2"></i> New community forum</li>
-                    </ul>
-                    <div class="mt-6 flex justify-between items-center">
-                        <span class="text-2xl font-bold">$2.00</span>
-                        <button class="btn bg-white bg-opacity-10 px-4 py-2 rounded-full text-sm cursor-not-allowed opacity-50">Coming Soon</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="features" class="py-20 px-4 md:px-0 bg-dark-bg-end">
-        <div class="container mx-auto text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-12">Why FloatScript?</h2>
-            
-            <div class="flex justify-center flex-wrap gap-4 mb-8">
-                <button class="tab-button bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-6 py-3 rounded-full transition-colors active" data-tab="syntax">Syntax</button>
-                <button class="tab-button bg-white bg-opacity-10 hover:bg-opacity-20 text-white px-6 py-3 rounded-full transition-colors" data-tab="performance">Performance</button>
-                <button class="tab-button bg-white bg-opacity-10 hover:bg-opacity-20 text-white px-6 py-3 rounded-full transition-colors" data-tab="features-list">Features</button>
-                <button class="tab-button bg-white bg-opacity-10 hover:bg-opacity-20 text-white px-6 py-3 rounded-full transition-colors" data-tab="community">Community</button>
-            </div>
-            
-            <div id="tab-content-container">
-                <div id="syntax" class="tab-content glass-card p-8 active">
-                    <h3 class="text-3xl font-bold mb-6 text-left">Syntax Comparison</h3>
-                    <p class="text-lg mb-8 opacity-85 text-left">See how FloatScript's clean syntax stacks up against common programming languages. Write more, boilerplate less.</p>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left table-auto min-w-[600px]">
-                            <thead>
-                                <tr class="border-b border-gray-700">
-                                    <th class="py-4 font-semibold text-glass-blue-400">Concept</th>
-                                    <th class="py-4 font-semibold text-glass-blue-400">FloatScript</th>
-                                    <th class="py-4 font-semibold text-gray-400">Python</th>
-                                    <th class="py-4 font-semibold text-gray-400">JavaScript</th>
-                                    <th class="py-4 font-semibold text-gray-400">C++</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-b border-gray-700">
-                                    <td class="py-4">Variable Declaration</td>
-                                    <td class="py-4 font-mono">lex my_var = "Hello"</td>
-                                    <td class="py-4 font-mono">my_var = "Hello"</td>
-                                    <td class="py-4 font-mono">let my_var = "Hello";</td>
-                                    <td class="py-4 font-mono">std::string my_var = "Hello";</td>
-                                </tr>
-                                <tr class="border-b border-gray-700">
-                                    <td class="py-4">Printing to Console</td>
-                                    <td class="py-4 font-mono">std::out my_var</td>
-                                    <td class="py-4 font-mono">print(my_var)</td>
-                                    <td class="py-4 font-mono">console.log(my_var);</td>
-                                    <td class="py-4 font-mono">std::cout &lt;&lt; my_var;</td>
-                                </tr>
-                                <tr class="border-b border-gray-700">
-                                    <td class="py-4">Function Declaration</td>
-                                    <td class="py-4 font-mono">func my_func(arg)</td>
-                                    <td class="py-4 font-mono">def my_func(arg):</td>
-                                    <td class="py-4 font-mono">function my_func(arg) { ... }</td>
-                                    <td class="py-4 font-mono">void my_func(int arg) { ... }</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Overview%20and%20Architecture%20of%20FloatScript.html" class="inline-block mt-8 text-glass-blue-400 hover:text-white transition-colors text-sm font-semibold">
-                        <i class="fas fa-book-open mr-2"></i> FloatScript Architecture Overview
-                    </a>
-                </div>
-                
-                <div id="performance" class="tab-content glass-card p-8">
-                    <h3 class="text-3xl font-bold mb-6 text-left">Performance Benchmarks</h3>
-                    <p class="text-lg mb-8 opacity-85 text-left">FloatScript's C++ core allows it to outperform common interpreted languages. Here's how it compares in a standard Fibonacci sequence calculation (lower is better).</p>
-                    <div id="benchmark-chart" class="benchmark-container">
-                        <div class="benchmark-bar" title="C++ Performance: 3.1ms">
-                            <span class="benchmark-label">C++</span>
-                            <div class="benchmark-track">
-                                <div class="benchmark-fill fill-cpp" style="width: 25%;"></div>
-                            </div>
-                            <span class="benchmark-value">3.1ms</span>
-                        </div>
-                        <div class="benchmark-bar" title="FloatScript Performance: 5.2ms">
-                            <span class="benchmark-label">FloatScript</span>
-                            <div class="benchmark-track">
-                                <div class="benchmark-fill fill-floatscript" style="width: 45%;"></div>
-                            </div>
-                            <span class="benchmark-value">5.2ms</span>
-                        </div>
-                        <div class="benchmark-bar" title="Python Performance: 11.8ms">
-                            <span class="benchmark-label">Python</span>
-                            <div class="benchmark-track">
-                                <div class="benchmark-fill fill-python" style="width: 75%;"></div>
-                            </div>
-                            <span class="benchmark-value">11.8ms</span>
-                        </div>
-                        <div class="benchmark-bar" title="JavaScript Performance: 18.5ms">
-                            <span class="benchmark-label">JavaScript</span>
-                            <div class="benchmark-track">
-                                <div class="benchmark-fill fill-javascript" style="width: 100%;"></div>
-                            </div>
-                            <span class="benchmark-value">18.5ms</span>
-                        </div>
-                    </div>
-                    </div>
-
-                <div id="features-list" class="tab-content glass-card p-8">
-                    <h3 class="text-3xl font-bold mb-6 text-left">Feature Overview</h3>
-                    <p class="text-lg mb-8 opacity-85 text-left">A quick look at some of the powerful features that make FloatScript a joy to work with, from its core design to its rich ecosystem.</p>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-code-branch"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Functional Programming</h4>
-                                <p class="text-sm opacity-75">First-class functions, closures, and immutable data structures for clean, predictable code.</p>
-                            </div>
-                        </div>
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-shield-alt"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Robust Standard Library</h4>
-                                <p class="text-sm opacity-75">Built-in support for networking, data compression, encryption, and more.</p>
-                            </div>
-                        </div>
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-terminal"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Interactive REPL</h4>
-                                <p class="text-sm opacity-75">Test ideas quickly with a terminal-like environment, perfect for rapid prototyping.</p>
-                            </div>
-                        </div>
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-cogs"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Customizable Compiler</h4>
-                                <p class="text-sm opacity-75">Adjust optimization settings and output targets to fit your specific needs.</p>
-                            </div>
-                        </div>
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-network-wired"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Parallel Computing</h4>
-                                <p class="text-sm opacity-75">Seamlessly leverage multiple CPU cores for high-performance data processing.</p>
-                            </div>
-                        </div>
-                        <div class="glass-card p-6 flex items-center">
-                            <div class="w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-400 text-white text-xl mr-4"><i class="fas fa-mobile-alt"></i></div>
-                            <div>
-                                <h4 class="font-semibold text-lg mb-1">Cross-Platform</h4>
-                                <p class="text-sm opacity-75">Develop on Windows, macOS, or Linux. Write once, run everywhere.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="community" class="tab-content glass-card p-8">
-                    <h3 class="text-3xl font-bold mb-6 text-left">Community & Ecosystem</h3>
-                    <p class="text-lg mb-8 opacity-85 text-left">FloatScript's strength lies in its passionate and growing community. We're proud to be a rapidly-expanding ecosystem of developers and creators.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                        <div class="glass-card p-6">
-                            <span class="text-5xl font-bold text-glass-blue-400">100+</span>
-                            <p class="mt-2 text-sm opacity-85">Open Source Contributors</p>
-                        </div>
-                        <div class="glass-card p-6">
-                            <span class="text-5xl font-bold text-glass-blue-400">5,000+</span>
-                            <p class="mt-2 text-sm opacity-85">Active Developers</p>
-                        </div>
-                        <div class="glass-card p-6">
-                            <span class="text-5xl font-bold text-glass-blue-400">20+</span>
-                            <p class="mt-2 text-sm opacity-85">Community-built Modules</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="tutorial" class="py-20 px-4 md:px-0 animated-bg-gradient">
-        <div class="container mx-auto text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4">Learn FloatScript in 60 Seconds</h2>
-            <p class="text-lg mb-16 opacity-85 max-w-2xl mx-auto">Get started with our streamlined tutorial. Master the basics and see why FloatScript is the future of programming.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                <div class="glass-card p-8 relative">
-                    <div class="absolute -top-4 -left-4 w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-500 text-white text-xl font-bold">1</div>
-                    <h3 class="text-2xl font-bold mb-4">Variables & Types</h3>
-                    <p class="text-sm opacity-85">FloatScript uses lex for variable declaration and is dynamically typed. No need to specify int, float, or string. It just works.</p>
-                    <div class="font-mono bg-white bg-opacity-5 p-4 rounded-lg mt-4 text-sm overflow-x-auto">
-                        <span class="comment">// A number variable</span><br>
-                        <span class="keyword">lex</span> my_age = <span class="number">14</span><br><br>
-                        <span class="comment">// A string variable</span><br>
-                        <span class="keyword">lex</span> my_name = <span class="string">"Lusungu"</span>
-                    </div>
-                </div>
-                <div class="glass-card p-8 relative">
-                    <div class="absolute -top-4 -left-4 w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-500 text-white text-xl font-bold">2</div>
-                    <h3 class="text-2xl font-bold mb-4">The Print Statement</h3>
-                    <p class="text-sm opacity-85">Our standard output function is std::out. It's simple, fast, and does what it says on the tin.</p>
-                    <div class="font-mono bg-white bg-opacity-5 p-4 rounded-lg mt-4 text-sm overflow-x-auto">
-                        <span class="keyword">std</span><span class="operator">::</span><span class="function">out</span> <span class="string">"Hello, FloatScript!"</span><br><br>
-                        <span class="keyword">lex</span> pi = <span class="number">3.14159</span><br>
-                        <span class="keyword">std</span><span class="operator">::</span><span class="function">out</span> <span class="string">"The value of pi is: "</span> + pi
-                    </div>
-                </div>
-                <div class="glass-card p-8 relative">
-                    <div class="absolute -top-4 -left-4 w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-500 text-white text-xl font-bold">3</div>
-                    <h3 class="text-2xl font-bold mb-4">Functions & Logic</h3>
-                    <p class="text-sm opacity-85">Declare functions with func. The syntax is clean, and the logic is easy to follow.</p>
-                    <div class="font-mono bg-white bg-opacity-5 p-4 rounded-lg mt-4 text-sm overflow-x-auto">
-                        <span class="comment">// A simple greeting function</span><br>
-                        <span class="keyword">func</span> greet(name)<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">std</span><span class="operator">::</span><span class="function">out</span> <span class="string">"Hello, "</span> + name + <span class="string">"!"</span><br><br>
-                        <span class="comment">// A call to the function</span><br>
-                        <span class="function">greet</span>(<span class="string">"FloatScript"</span>)
-                    </div>
-                </div>
-                <div class="glass-card p-8 relative">
-                    <div class="absolute -top-4 -left-4 w-12 h-12 flex items-center justify-center rounded-full bg-glass-blue-500 text-white text-xl font-bold">4</div>
-                    <h3 class="text-2xl font-bold mb-4">Getting Your Feet Wet</h3>
-                    <p class="text-sm opacity-85">You're ready to go! Download FloatScript and start coding. Join our community for more tutorials and support.</p>
-                    <div class="mt-4 p-4 rounded-lg bg-glass-blue-400 bg-opacity-20 border-l-4 border-glass-blue-500">
-                        <p class="text-sm font-semibold text-white">Pro Tip:</p>
-                        <p class="text-sm opacity-85">Check out the <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/How%20to%20Code%20in%20FloatScript.html" class="underline text-white font-bold hover:text-glass-blue-400">Complete FloatScript Coding Guide</a> for in-depth tutorials and code examples.</p>
-                    </div>
-                    <div class="flex flex-wrap gap-4 mt-8 justify-center md:justify-start">
-                        <a href="https://twitter.com/FloatScript" aria-label="Twitter" class="w-12 h-12 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-2xl transition-colors"><i class="fab fa-twitter"></i></a>
-                        <a href="https://github.com/FloatScriptOriole" aria-label="GitHub" class="w-12 h-12 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-2xl transition-colors"><i class="fab fa-github"></i></a>
-                        <a href="https://discord.gg/floatscript" aria-label="Discord" class="w-12 h-12 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-2xl transition-colors"><i class="fab fa-discord"></i></a>
-                        <a href="https://www.youtube.com/@FloatScriptOriole" aria-label="YouTube" class="w-12 h-12 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-2xl transition-colors"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="download" class="py-20 px-4 md:px-0 bg-dark-bg-end">
-        <div class="container mx-auto text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-4">Download FloatScript</h2>
-            <p class="text-lg mb-16 opacity-85 max-w-2xl mx-auto">Get started on your favorite platform. Simple installers for Windows, macOS, and Linux are available now. Source code for developers.</p>
-            
-            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-                <div class="glass-card p-6 text-center">
-                    <i class="fab fa-windows text-5xl text-glass-blue-400 mb-4"></i>
-                    <h3 class="text-2xl font-bold mb-2">Windows</h3>
-                    <p class="text-sm opacity-85 mb-4">For 64-bit systems. Includes installer and compiler.</p>
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-6 py-2 rounded-full text-sm">Download .zip</a>
-                </div>
-                <div class="glass-card p-6 text-center">
-                    <i class="fab fa-apple text-5xl text-glass-blue-400 mb-4"></i>
-                    <h3 class="text-2xl font-bold mb-2">macOS</h3>
-                    <p class="text-sm opacity-85 mb-4">For Intel and Apple Silicon. Includes installer and compiler.</p>
-                    <a href="#" class="btn bg-gray-500 text-white px-6 py-2 rounded-full text-sm cursor-not-allowed opacity-70">Coming in 2026</a>
-                </div>
-                <div class="glass-card p-6 text-center">
-                    <i class="fab fa-linux text-5xl text-red-500 mb-4"></i>
-                    <h3 class="text-2xl font-bold mb-2">Linux</h3>
-                    <p class="text-sm opacity-85 mb-4">For Ubuntu/Debian, Fedora, and Arch. Includes installer.</p>
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip" class="btn bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full text-sm">Download .zip</a>
-                </div>
-                <div class="glass-card p-6 text-center">
-                    <i class="fas fa-file-code text-5xl text-glass-blue-400 mb-4"></i>
-                    <h3 class="text-2xl font-bold mb-2">Source Code</h3>
-                    <p class="text-sm opacity-85 mb-4">Get the latest source code from our GitHub repository.</p>
-                    <a href="https://github.com/FloatScriptOriole/FloatScript" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white px-6 py-2 rounded-full text-sm">View on GitHub</a>
-                </div>
-            </div>
-            
-            <div class="mt-8 text-center">
-                <a href="#" class="underline text-gray-400 hover:text-white transition-colors">Archive of Older Versions(Coming Soon)</a>
-            </div>
-        </div>
-    </section>
-
-    <footer class="py-12 bg-dark-bg-start text-center">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col items-center space-y-6">
-                <a href="#" class="font-mono text-2xl font-bold">
-                    FloatScript<span class="text-glass-blue-500">.Oriole</span>
-                </a>
-                
-                <div class="flex flex-wrap justify-center space-x-6">
-                    <a href="#about" class="text-white hover:text-glass-blue-400 transition-colors">About</a>
-                    <a href="#versions" class="text-white hover:text-glass-blue-400 transition-colors">Versions</a>
-                    <a href="#features" class="text-white hover:text-glass-blue-400 transition-colors">Features</a>
-                    <a href="#download" class="text-white hover:text-glass-blue-400 transition-colors">Download</a>
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Oriole.html" class="text-white hover:text-glass-blue-400 transition-colors">Oriole Company</a>
-                    <a href="https://floatscriptoriole.github.io/FloatScript.Oriole/Overview%20and%20Architecture%20of%20FloatScript.html" class="text-white hover:text-glass-blue-400 transition-colors">Architecture</a>
-                    <a href="#" class="text-white hover:text-glass-blue-400 transition-colors">Press Kit</a>
-                </div>
-                
-                <div class="flex space-x-4">
-                    <a href="https://twitter.com/FloatScript" aria-label="Twitter" class="w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-xl transition-colors"><i class="fab fa-twitter"></i></a>
-                    <a href="https://github.com/FloatScriptOriole" aria-label="GitHub" class="w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-xl transition-colors"><i class="fab fa-github"></i></a>
-                    <a href="https://discord.gg/floatscript" aria-label="Discord" class="w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-xl transition-colors"><i class="fab fa-discord"></i></a>
-                    <a href="https://www.youtube.com/@FloatScriptOriole" aria-label="YouTube" class="w-10 h-10 flex items-center justify-center rounded-full bg-white bg-opacity-10 hover:bg-opacity-20 text-white text-xl transition-colors"><i class="fab fa-youtube"></i></a>
-                </div>
-                
-                <p class="text-sm text-gray-400">Copyright © 2026 FloatScript.Oriole. All Rights Reserved.</p>
-            </div>
-        </div>
-    </footer>
-    
-    <div id="purchase-modal" class="fixed inset-0 bg-black bg-opacity-80 z-[100] flex items-center justify-center hidden p-4">
-        <div class="glass-container p-8 w-full max-w-md relative animate-fade-in-up">
-            <button id="close-modal" class="absolute top-4 right-4 text-2xl text-white hover:text-gray-400 transition-colors"><i class="fas fa-times"></i></button>
-            <h3 class="text-2xl font-bold mb-6 text-center">Complete Your Purchase</h3>
-            
-            <div id="purchase-form">
-                <div class="mb-4">
-                    <label for="version-select" class="block font-semibold mb-2">Select Version</label>
-                    <select id="version-select" class="w-full bg-white bg-opacity-10 px-4 py-3 rounded-lg text-white appearance-none cursor-pointer">
-                        <option value="v1.5">FloatScript v1.5 ($1.00)</option>
-                        <option value="v2.0">FloatScript v2 Beta ($1.50)</option>
-                    </select>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="email" class="block font-semibold mb-2">Email Address</label>
-                    <input type="email" id="email" class="w-full bg-white bg-opacity-10 px-4 py-3 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-glass-blue-400" placeholder="your@email.com">
-                </div>
-                
-                <div class="mb-6">
-                    <label for="card-details" class="block font-semibold mb-2">Credit Card Details</label>
-                    <div id="card-details" class="w-full bg-white bg-opacity-10 px-4 py-3 rounded-lg text-white">
-                        <p class="text-sm text-gray-400">Credit card form will be integrated here.</p>
-                    </div>
-                </div>
-                
-                <button id="process-payment" class="btn bg-glass-blue-500 hover:bg-glass-blue-600 text-white w-full px-6 py-3 rounded-full text-lg">
-                    Pay <span id="purchase-price">$1.00</span>
-                </button>
-            </div>
-            
-            <div id="success-message" class="hidden text-center p-8">
-                <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
-                <h3 class="text-2xl font-bold mb-2">Payment Successful!</h3>
-                <p class="text-sm opacity-85">Thank you for your purchase. A download link has been sent to your email.</p>
-            </div>
-        </div>
+      </div>
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Binary Rain Effect (simplified)
-            function createBinaryRain() {
-                const rainContainer = document.getElementById('binary-rain');
-                if (!rainContainer) return;
-                const characters = '01';
-                const count = 50;
-                for (let i = 0; i < count; i++) {
-                    const span = document.createElement('span');
-                    span.textContent = characters[Math.floor(Math.random() * characters.length)];
-                    span.style.position = 'absolute';
-                    span.style.color = '#1d4ed8';
-                    span.style.fontFamily = 'Fira Code, monospace';
-                    span.style.left = Math.random() * 100 + 'vw';
-                    span.style.animationDelay = Math.random() * 20 + 's';
-                    span.style.animationDuration = Math.random() * 10 + 10 + 's';
-                    span.style.animationName = 'binary-fall';
-                    span.style.opacity = '0.1';
-                    rainContainer.appendChild(span);
-                }
-            }
+    <div class="wgrid">
+      <div class="wc rv d1"><div class="wi gm"><i class="fas fa-exclamation-triangle"></i></div><h3>The Problem</h3><p>C++ is powerful but overwhelming. Python is friendly but slow. Most languages sacrifice one for the other, leaving developers stuck in the middle.</p><span class="wbadge"><i class="fas fa-question-circle"></i> The Gap</span></div>
+      <div class="wc rv d2"><div class="wi" style="background:linear-gradient(135deg,#7C3AED,#DB2777);"><i class="fas fa-magic"></i></div><h3>The Solution</h3><p>FloatScript is lightweight and expressive with built‑in threading, JIT &amp; AOT compilation, pointer support, and memory control — no compromises.</p><span class="wbadge"><i class="fas fa-bolt"></i> FloatScript</span></div>
+      <div class="wc rv d3"><div class="wi" style="background:linear-gradient(135deg,var(--L0),#10B981);"><i class="fas fa-cogs"></i></div><h3>The Process</h3><p>Define functions with <code style="font-family:var(--fm);font-size:.88em;">fn</code>, run async tasks with <code style="font-family:var(--fm);font-size:.88em;">init</code>, tap into seven built‑in libraries. Write once, run anywhere.</p><span class="wbadge"><i class="fas fa-check-circle"></i> Batteries Included</span></div>
+      <div class="wc rv d1"><div class="wi" style="background:linear-gradient(135deg,#F59E0B,#EF4444);"><i class="fas fa-memory"></i></div><h3>Manual Memory Control</h3><p>Low‑level memory access via <code style="font-family:var(--fm);font-size:.88em;">#include &lt;mem&gt;</code> — allocate, write, read, and free blocks directly. Ideal for performance‑critical workloads.</p><span class="wbadge"><i class="fas fa-microchip"></i> Low-Level Power</span></div>
+      <div class="wc rv d2"><div class="wi" style="background:linear-gradient(135deg,#8B5CF6,#EC4899);"><i class="fas fa-layer-group"></i></div><h3>Classes &amp; OOP</h3><p>Define classes, navigate them with <code style="font-family:var(--fm);font-size:.88em;">with</code> and <code style="font-family:var(--fm);font-size:.88em;">this</code>, and manipulate members intuitively. Structured OOP in a scripting language.</p><span class="wbadge"><i class="fas fa-cube"></i> OOP Support</span></div>
+      <div class="wc rv d3"><div class="wi" style="background:linear-gradient(135deg,#10B981,#0891B2);"><i class="fas fa-rocket"></i></div><h3>Born from Vision</h3><p>Started as a 14‑year‑old's experiment. Evolved through OptScript, Beta, v1 — and now FloatScript.Oriole with a VM, AOT compiler, and a growing global community.</p><span class="wbadge"><i class="fas fa-star"></i> Oriole Release</span></div>
+    </div>
+  </div>
+</section>
 
-            // --- IMPROVED TYPING ANIMATION ---
-            function animateTyping() {
-                const typingDemo = document.getElementById('typing-demo');
-                const cursor = document.getElementById('cursor');
-                const texts = ['FloatScript.Oriole', 'Simple Syntax', 'Powerful Features', 'The Future of Coding'];
-                let textIndex = 0;
-                let charIndex = 0;
-                let isDeleting = false;
-                let typingDelay = 100;
+<!-- BENCHMARKS -->
+<section id="benchmarks">
+  <div class="wrap">
+    <div class="rv" style="text-align:center;">
+      <span class="stag"><i class="fas fa-chart-line" style="font-size:.9em;"></i> Performance</span>
+      <h2 class="stitle">Real Numbers. Real Impact.</h2>
+      <p class="ssub" style="margin:0 auto;">FloatScript.Oriole outperforms every previous version across all metrics.</p>
+    </div>
+    <div class="bgrid">
+      <div class="bc rv d1"><span class="be">⚡</span><span class="bn" data-t="40" data-p="+" data-s="%">0</span><div class="bl2">Faster Execution</div><div class="bd2">Compared to FloatScript v1 — JIT compilation delivers dramatically faster runtime performance.</div></div>
+      <div class="bc rv d2"><span class="be">🧠</span><span class="bn" data-t="30" data-p="" data-s="% less RAM">0</span><div class="bl2">Memory Efficiency</div><div class="bd2">Smarter allocation and automatic cleanup reduce memory footprint by 20–30% across workloads.</div></div>
+      <div class="bc rv d3"><span class="be">🌟</span><span class="bn" data-t="1000" data-p="" data-s="+">0</span><div class="bl2">GitHub Stars</div><div class="bd2">A growing global community exploring, forking, and building with FloatScript.Oriole.</div></div>
+    </div>
+  </div>
+</section>
 
-                function type() {
-                    const currentText = texts[textIndex];
-                    
-                    if (isDeleting) {
-                        typingDemo.textContent = currentText.substring(0, charIndex - 1);
-                        charIndex--;
-                        typingDelay = 50;
-                    } else {
-                        typingDemo.textContent = currentText.substring(0, charIndex + 1);
-                        charIndex++;
-                        typingDelay = 100;
-                    }
-                    
-                    if (!isDeleting && charIndex === currentText.length) {
-                        isDeleting = true;
-                        typingDelay = 2000; // Increased pause at the end of a word
-                    } else if (isDeleting && charIndex === 0) {
-                        isDeleting = false;
-                        textIndex = (textIndex + 1) % texts.length;
-                        typingDelay = 500;
-                    }
-                    
-                    setTimeout(type, typingDelay);
-                }
-                
-                // Cursor blinking effect
-                setInterval(() => {
-                    cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
-                }, 500);
+<!-- CODE DEMO -->
+<section id="code-demo">
+  <div class="wrap">
+    <div class="rv">
+      <span class="stag"><i class="fas fa-terminal" style="font-size:.9em;"></i> Live Editor</span>
+      <h2 class="stitle">See FloatScript in Action</h2>
+      <p class="ssub">Edit live and run to see simulated output. Real FloatScript.Oriole syntax.</p>
+    </div>
+    <div class="dlayout rv">
+      <div>
+        <div class="eshell">
+          <div class="ebar">
+            <div class="edots"><span></span><span></span><span></span></div>
+            <span class="efn">main.flt</span>
+            <button class="rbtn" id="runBtn"><i class="fas fa-play"></i> Run</button>
+          </div>
+          <textarea id="cme"></textarea>
+        </div>
+        <div class="sbtns" id="sbtns">
+          <button class="sbtn act" data-s="hello">Hello World</button>
+          <button class="sbtn" data-s="fn">Functions</button>
+          <button class="sbtn" data-s="loop">Variables</button>
+          <button class="sbtn" data-s="cls">Classes</button>
+          <button class="sbtn" data-s="vect">Vectors</button>
+        </div>
+      </div>
+      <div>
+        <div class="cshell">
+          <div class="cbar"><i class="fas fa-terminal"></i><span>FloatScript.Oriole — Console</span></div>
+          <div id="cout"><span class="p">$ floatscript.oriole shell</span><br/><span style="color:rgba(255,255,255,.22);font-size:.76rem;">Press ▶ Run to execute your code…</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-                // Start typing animation
-                setTimeout(type, 1000);
-            }
+<!-- VERSIONS -->
+<section id="versions">
+  <div class="wrap">
+    <div class="rv">
+      <span class="stag"><i class="fas fa-code-branch" style="font-size:.9em;"></i> Version History</span>
+      <h2 class="stitle">From Zero to FloatScript</h2>
+      <p class="ssub">A language's journey, one release at a time.</p>
+    </div>
+    <div class="vgrid">
+      <div class="vc rv d1"><div class="vico"><i class="fas fa-flask"></i></div><span class="vyr">2024</span><h3>OptScript</h3><p>The original prototype. Where it all started — a 14‑year‑old's first interpreter, born from curiosity and a few hundred lines of C++.</p><div class="vlk"><i class="fas fa-lock"></i> Archive only</div></div>
+      <div class="vc rv d2"><div class="vico"><i class="fas fa-vial"></i></div><span class="vyr">2024</span><h3>FloatScript Beta</h3><p>First public release. Introduced the <code style="font-family:var(--fm);font-size:.88em;">lex</code> keyword, basic functions, and standard I/O. Rough but real.</p><div class="vlk"><i class="fas fa-lock"></i> Archive only</div></div>
+      <div class="vc rv d3"><div class="vico"><i class="fas fa-code-branch"></i></div><span class="vyr">2025</span><h3>FloatScript v1</h3><p>Stabilisation release. Added classes, threading, memory management, and the first version of the online IDE. Rapidly growing ecosystem.</p><div class="vlk"><i class="fas fa-lock"></i> Archive only</div></div>
+      <div class="vc lat rv d4"><div class="vico"><i class="fas fa-rocket"></i></div><span class="vyr">2025 — Now</span><h3>FloatScript.Oriole</h3><p>The mature release. JIT &amp; AOT compilation, virtual machine, async <code style="font-family:var(--fm);font-size:.88em;">init</code> functions, full library ecosystem. Download it today.</p><span class="vdl"><i class="fas fa-download"></i> Download Available</span></div>
+    </div>
+  </div>
+</section>
 
-            // Scroll-triggered animations for sections with IntersectionObserver
-            function setupScrollAnimations() {
-                const sections = document.querySelectorAll('section');
-                const observerOptions = {
-                    root: null,
-                    rootMargin: '0px 0px -100px 0px',
-                    threshold: 0.1
-                };
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="wrap">
+    <div class="rv" style="text-align:center;">
+      <span class="stag"><i class="fas fa-download" style="font-size:.9em;"></i> Download</span>
+      <h2 class="stitle">Get FloatScript</h2>
+      <p class="ssub" style="margin:0 auto;">Free. Open‑source. Ready to run.</p>
+    </div>
+    <div class="dgrid">
+      <div class="dc rv d1"><i class="fab fa-windows dico tm"></i><h3>Windows</h3><p>Supports Windows 10 &amp; 11. Extract and run the interpreter from your terminal.</p><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip" class="dbtn"><i class="fas fa-download"></i> Download .zip</a></div>
+      <div class="dc rv d2"><i class="fab fa-linux dico tm"></i><h3>Linux</h3><p>Compatible with Ubuntu, Debian, Arch and most major distributions.</p><a href="https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip" class="dbtn"><i class="fas fa-download"></i> Download .zip</a></div>
+      <div class="dc rv d3"><i class="fab fa-apple dico" style="background:linear-gradient(135deg,#64748B,#94A3B8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i><h3>macOS</h3><p>macOS support is coming soon. Join the waitlist to be notified at launch.</p><a href="/cdn-cgi/l/email-protection#d7b1bbb8b6a3a4b4a5bea7a3f9b8a5beb8bbb297b0bab6bebbf9b4b8bae8a4a2b5bdb2b4a3eabab6b49884f2e5e780b6bea3bbbea4a3" class="dbtn soon"><i class="fas fa-envelope"></i> Join Waitlist</a></div>
+    </div>
+    <div class="dfoot rv">
+      <a href="https://github.com/FloatScriptOriole/FloatScript.Oriole/tree/main" target="_blank" class="bm"><i class="fab fa-github"></i> View on GitHub</a>
+      <p class="dnote"><i class="fas fa-heart"></i> All downloads are free and open‑source. Built with love by Oriole.</p>
+    </div>
+  </div>
+</section>
 
-                const observer = new IntersectionObserver((entries, observer) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const section = entry.target;
-                            anime({
-                                targets: section.querySelectorAll('.glass-card, h2, p, a, img'),
-                                opacity: [0, 1],
-                                translateY: [50, 0],
-                                duration: 1000,
-                                delay: anime.stagger(100, { start: 500 }),
-                                easing: 'easeOutQuad'
-                            });
-                            observer.unobserve(section);
-                        }
-                    });
-                }, observerOptions);
+<!-- TEAM -->
+<section id="team">
+  <div class="wrap">
+    <div class="rv">
+      <span class="stag"><i class="fas fa-users" style="font-size:.9em;"></i> The Team</span>
+      <h2 class="stitle">Meet the Builders</h2>
+      <p class="ssub">Two teenagers. One language. Infinite potential.</p>
+    </div>
+    <div class="tgrid">
+      <div class="tc rv d1">
+        <div class="thead"><div class="tava gm">L<div class="tring gm"></div></div><div><div class="tname">Lusungu Luhana</div><div class="trole tm">Founder &amp; Lead Developer</div></div></div>
+        <p class="tbio">The mind behind FloatScript. Started writing the interpreter at 14 and hasn't stopped since. Drives the language's core, compiler, and virtual machine.</p>
+        <div class="tstats"><div class="tst"><div class="tsn">12</div><div class="tsl">Projects</div></div><div class="tst"><div class="tsn">15</div><div class="tsl">Age</div></div><div class="tst"><div class="tsn">480</div><div class="tsl">Followers</div></div></div>
+        <a href="https://github.com/FloatScriptOriole/FloatScript.Oriole/tree/main" target="_blank" class="bm"><i class="fab fa-github"></i> GitHub</a>
+      </div>
+      <div class="tc b rv d2">
+        <div class="thead"><div class="tava gl" style="color:#0B1120;">A<div class="tring gl"></div></div><div><div class="tname">Alinaswe Sinkala</div><div class="trole tl">Co‑founder &amp; Web Developer</div></div></div>
+        <p class="tbio">The web force behind Oriole. Builds the online IDE, websites, and digital presence. Makes FloatScript as beautiful to look at as it is powerful to use.</p>
+        <div class="tstats"><div class="tst"><div class="tsn">10</div><div class="tsl">Websites</div></div><div class="tst"><div class="tsn">15</div><div class="tsl">Age</div></div><div class="tst"><div class="tsn">320</div><div class="tsl">Followers</div></div></div>
+        <a href="https://oriole.great-site.net/" target="_blank" class="bl"><i class="fas fa-globe"></i> Website</a>
+      </div>
+    </div>
+  </div>
+</section>
 
-                sections.forEach(section => observer.observe(section));
-            }
+<!-- REVIEWS -->
+<section id="reviews">
+  <div class="wrap">
+    <div class="rv">
+      <span class="stag"><i class="fas fa-comments" style="font-size:.9em;"></i> Community</span>
+      <h2 class="stitle">What the community says <span id="rev-count-badge" style="font-size:1rem;font-weight:700;padding:.22rem .85rem;border-radius:60px;background:linear-gradient(135deg,rgba(16,60,231,.09),rgba(100,233,255,.09));border:1px solid rgba(16,60,231,.15);color:var(--M0);vertical-align:middle;margin-left:.5rem;letter-spacing:0;"></span></h2>
+      <p class="ssub">Share your experience with FloatScript.Oriole. Reviews are moderated.</p>
+    </div>
+    <div class="rlayout">
+      <div class="rform rv d1">
+        <h3><i class="fas fa-pen" style="color:var(--M0);margin-right:.42rem;"></i>Leave a Review</h3>
+        <div class="fg"><label>Your Name *</label><input type="text" id="rn" placeholder="e.g. Alex Chen"/></div>
+        <div class="fg"><label>Email (optional)</label><input type="email" id="re" placeholder="your@email.com"/></div>
+        <div class="fg"><label>Comment *</label><textarea id="rc" rows="4" placeholder="Share your experience…"></textarea></div>
+        <button class="subbtn" id="subbtn"><i class="fas fa-paper-plane"></i> Post Review</button>
+        <p class="modn"><i class="fas fa-shield-alt"></i> Reviews are moderated. Be kind.</p>
+      </div>
+      <div>
+        <div id="rlist" class="rlist"><div class="spinw"><div class="spin"></div></div></div>
+        <button class="loadm" id="loadm" style="display:none;"><i class="fas fa-chevron-down"></i> Load More</button>
+      </div>
+    </div>
+  </div>
+</section>
 
-            // Navbar scroll effect
-            const navbar = document.getElementById('navbar');
-            window.addEventListener('scroll', () => {
-                if (window.scrollY > 100) {
-                    navbar.classList.add('scrolled');
-                } else {
-                    navbar.classList.remove('scrolled');
-                }
-            });
+<!-- FOOTER -->
+<footer>
+  <div class="fi">
+    <div class="fb">
+      <h2>FloatScript.Oriole</h2>
+      <p>A custom programming language built by teenagers, for everyone. Lightweight, expressive, and powerful.</p>
+      <div class="fsoc">
+        <a href="https://github.com/FloatScriptOriole/FloatScript.Oriole/tree/main" target="_blank" class="fs"><i class="fab fa-github"></i></a>
+        <a href="/cdn-cgi/l/email-protection#0563696a64717666776c75712b6a776c6a6960456268646c692b666a68" class="fs"><i class="fas fa-envelope"></i></a>
+        <a href="https://oriole.great-site.net/" target="_blank" class="fs"><i class="fas fa-globe"></i></a>
+      </div>
+    </div>
+    <div class="fc"><h4>Product</h4><ul><li><a href="#why">About</a></li><li><a href="#versions">Versions</a></li><li><a href="#download">Download</a></li><li><a href="https://floatscript-studio.gt.tc/" target="_blank">Online IDE</a></li></ul></div>
+    <div class="fc"><h4>Company</h4><ul><li><a href="https://oriole.great-site.net/" target="_blank">Website</a></li><li><a href="https://oriole.great-site.net/Oriole.html" target="_blank">Overview</a></li><li><a href="#team">Team</a></li><li><a href="#reviews">Community</a></li></ul></div>
+    <div class="fc"><h4>Links</h4><ul><li><a href="https://github.com/FloatScriptOriole/FloatScript.Oriole/tree/main" target="_blank">GitHub</a></li><li><a href="/cdn-cgi/l/email-protection#0d6b61626c797e6e7f647d7923627f646261684d6a606c6461236e6260">Contact</a></li><li><a href="#download">Windows</a></li><li><a href="#download">Linux</a></li></ul></div>
+  </div>
+  <div class="fbot">
+    <p>© 2026 Oriole. All rights reserved.</p>
+    <p class="cred">Website crafted by <span>Alinaswe Sinkala</span>, age 15.</p>
+  </div>
+</footer>
 
-            // Mobile Menu Toggle Fix
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const closeMobileMenu = document.getElementById('close-mobile-menu');
-            const mobileNavLinks = document.querySelectorAll('.mobile-nav-link, #mobile-buy-button');
+<!-- ======================================================
+     NON-MODULE SCRIPTS  (dark mode, UI, CodeMirror, etc.)
+     ====================================================== -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* dark mode */
+var dkb=document.getElementById('dkb');
+function setDk(on){document.body.classList.toggle('dk',on);dkb.innerHTML=on?'<i class="fas fa-sun"></i>':'<i class="fas fa-moon"></i>';localStorage.setItem('fs-dk',on?'1':'0');}
+setDk(localStorage.getItem('fs-dk')==='1');
+dkb.addEventListener('click',function(){setDk(!document.body.classList.contains('dk'));});
 
-            const toggleMenu = (show) => {
-                if (show) {
-                    mobileMenu.classList.remove('hidden', 'opacity-0', 'scale-95');
-                    mobileMenu.classList.add('opacity-100', 'scale-100');
-                } else {
-                    mobileMenu.classList.remove('opacity-100', 'scale-100');
-                    mobileMenu.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => mobileMenu.classList.add('hidden'), 500);
-                }
-            };
-            
-            mobileMenuButton.addEventListener('click', () => toggleMenu(true));
-            closeMobileMenu.addEventListener('click', () => toggleMenu(false));
-            mobileNavLinks.forEach(link => link.addEventListener('click', () => toggleMenu(false)));
+/* mobile menu */
+document.getElementById('hbg').onclick=function(){document.getElementById('mob').classList.add('open');};
+document.getElementById('mobx').onclick=closeMob;
+function closeMob(){document.getElementById('mob').classList.remove('open');}
 
-            // REPL Simulation
-            const runButton = document.getElementById('run-button');
-            const replCode = document.getElementById('repl-code');
-            const replOutput = document.getElementById('repl-output');
+/* scroll reveal */
+var rvEls=document.querySelectorAll('.rv');
+var rvObs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting)e.target.classList.add('on');});},{threshold:.1});
+rvEls.forEach(function(el){rvObs.observe(el);});
 
-            runButton.addEventListener('click', function() {
-                const code = replCode.textContent.trim();
-                replOutput.textContent = '';
-                
-                let outputText = '';
-                if (code.includes('std::out "Hello FloatScript!"')) {
-                    outputText = 'Hello FloatScript!';
-                } else if (code.includes('std::out "The value of pi is: "')) {
-                    outputText = 'The value of pi is: 3.14159';
-                } else if (code.includes('greet("FloatScript")')) {
-                    outputText = 'Hello, FloatScript!';
-                } else if (code.includes('lex message = "Hello FloatScript!"')) {
-                    outputText = 'Hello FloatScript! ❤️';
-                } else {
-                    outputText = 'Error: Syntax not recognized. Please use a supported command.';
-                }
+/* floating code */
+var SNIPS=['lex name = "Oriole"','std::out name','fn greet { .rt { "hello" } }','#include <vect>','lex x = 42','if x > 10 { std::out "big" }','init worker { std::out "async" }','lex arr = [1,2,3]','#include <mem>','lex result = x + y','fn add { .rt { lhs + rhs } }','std::in userInput','lex pi = 3.14','#include <jit>','class Point { }','with Point { set x = 10 }','lex flag = true','#include <io>','std::out "FloatScript.Oriole"','lex ptr = alloc 16','jit compile greet','lex v = vec [1,2,3,4]','#include <bit>','fn fib { .rt { n } }','lex f = 3.14 * 2.0','set Point y = 20','get Point x'];
+var fxc=document.getElementById('fxc');
+var noAnim=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+function spawnFx(){
+  if(noAnim)return;
+  var max=window.innerWidth<640?6:22;
+  if(fxc.children.length>=max)return;
+  var el=document.createElement('div');el.className='fx';
+  el.textContent=SNIPS[Math.floor(Math.random()*SNIPS.length)];
+  el.style.left=Math.random()*88+'%';el.style.top=Math.random()*88+'%';
+  fxc.appendChild(el);
+  setTimeout(function(){el.style.transition='opacity 1.1s ease';el.style.opacity='1';},40);
+  var stay=2800+Math.random()*3800;
+  setTimeout(function(){el.style.opacity='0';setTimeout(function(){el.remove();},1100);},stay);
+}
+if(!noAnim){setInterval(spawnFx,window.innerWidth<640?850:350);for(var _i=0;_i<(window.innerWidth<640?4:16);_i++)setTimeout(spawnFx,_i*150);}
 
-                anime({
-                    targets: replOutput,
-                    opacity: [0, 1],
-                    translateY: [10, 0],
-                    duration: 500,
-                    easing: 'easeOutQuad',
-                    begin: () => {
-                         replOutput.innerHTML = `<span class="opacity-50">Executing...</span>`;
-                    },
-                    complete: () => {
-                         replOutput.textContent = outputText;
-                    }
-                });
-            });
+/* typewriter — 11 phrases */
+var PHRASES=[
+  'FloatScript: light, fast, yours.',
+  'From a 14-year-old\'s vision to your terminal.',
+  'The language that grows with you.',
+  'Built by teenagers, for everyone.',
+  'JIT & AOT. Threads. Memory. All in one.',
+  'Scripting power, systems-level control.',
+  'async init, manual memory, zero compromise.',
+  'Write once. Run anywhere. Run fast.',
+  'Classes, vectors, pointers — in a script.',
+  'Compile to bytecode. Ship with confidence.',
+  'Open-source. Free forever. Community-driven.',
+];
+var pi2=0,ci2=0,del2=false;
+var twEl=document.getElementById('tw');
+function type(){
+  var ph=PHRASES[pi2];
+  if(!del2){
+    twEl.innerHTML=ph.slice(0,ci2+1)+'<span class="cur"></span>';ci2++;
+    if(ci2===ph.length){del2=true;setTimeout(type,2100);return;}
+    setTimeout(type,48);
+  }else{
+    twEl.innerHTML=ph.slice(0,ci2-1)+'<span class="cur"></span>';ci2--;
+    if(ci2===0){del2=false;pi2=(pi2+1)%PHRASES.length;}
+    setTimeout(type,24);
+  }
+}
+type();
 
-            // Tabbed interface in Features section
-            const tabButtons = document.querySelectorAll('.tab-button');
-            const tabContents = document.querySelectorAll('.tab-content');
+/* benchmark counters */
+document.querySelectorAll('.bn').forEach(function(el){
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(!e.isIntersecting)return;
+      var t=+el.dataset.t,pf=el.dataset.p||'',sf=el.dataset.s||'';
+      var cur=0,step=t/60;
+      var tmr=setInterval(function(){cur=Math.min(cur+step,t);el.textContent=pf+Math.floor(cur)+sf;if(cur>=t)clearInterval(tmr);},16);
+      obs.unobserve(el);
+    });
+  },{threshold:.5});
+  obs.observe(el);
+});
 
-            tabButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    tabButtons.forEach(btn => {
-                        btn.classList.remove('active', 'bg-glass-blue-500', 'hover:bg-glass-blue-600');
-                        btn.classList.add('bg-white', 'bg-opacity-10', 'hover:bg-opacity-20');
-                    });
-                    this.classList.add('active', 'bg-glass-blue-500', 'hover:bg-glass-blue-600');
-                    this.classList.remove('bg-white', 'bg-opacity-10', 'hover:bg-opacity-20');
-                    
-                    const tabId = this.dataset.tab;
-                    tabContents.forEach(content => {
-                        if (content.id === tabId) {
-                            content.classList.remove('hidden');
-                            anime({
-                                targets: content,
-                                opacity: [0, 1],
-                                duration: 400,
-                                easing: 'easeOutQuad'
-                            });
-                            // Trigger benchmark animation when its tab is shown
-                            if (tabId === 'performance') {
-                                document.getElementById('benchmark-chart').classList.add('in-view');
-                            }
-                        } else {
-                            content.classList.add('hidden');
-                        }
-                    });
-                });
-            });
-             // Hide all tab contents initially except the active one
-            tabContents.forEach(content => {
-                if (!content.classList.contains('active')) {
-                    content.classList.add('hidden');
-                }
-            });
+/* CodeMirror */
+CodeMirror.defineSimpleMode('floatscript',{
+  start:[
+    {regex:/\/\/.*/,token:'comment'},
+    {regex:/"(?:[^\\]|\\.)*?"/,token:'string'},
+    {regex:/\b(lex|fn|init|if|else|while|std::out|std::in|set|get|with|this|class|def|end|\.rt|#include|jit|lhs|rhs|thread_arg|true|false|none|alloc|free|read|write)\b/,token:'keyword'},
+    {regex:/\b\d+(\.\d+)?\b/,token:'number'},
+    {regex:/[+\-*\/=<>!&|%^~]/,token:'operator'},
+    {regex:/\b[A-Za-z_][A-Za-z0-9_]*\b/,token:'variable'},
+  ],
+  meta:{lineComment:'//'}
+});
 
+var CSNIPS={
+  hello:'// Hello in FloatScript.Oriole\nlex name = "FloatScript.Oriole"\nstd::out name\n\nfn greet {\n  .rt { "Welcome to FloatScript!" }\n}\n\ngreet',
+  fn:'// Functions in FloatScript\nfn square {\n  lex result = lhs * lhs\n  .rt { result }\n}\n\nlhs = 7\nsquare\nstd::out "Result computed"',
+  loop:'// Variables and conditionals\nlex count = 0\nlex message = "FloatScript.Oriole is fast"\nstd::out message\nlex count = count + 1\nstd::out count',
+  cls:'// Classes in FloatScript\nclass Animal { }\nset Animal name = "Oriole Bird"\nset Animal speed = 120\n\nwith Animal {\n  std::out "Inside Animal context"\n  get name\n  get speed\n}',
+  vect:'// Vectors and arrays\n#include <vect>\nlex nums = [10, 20, 30, 40, 50]\nstd::out nums\n\nlex pi = 3.14159\nlex greeting = "Hello, FloatScript.Oriole!"\nstd::out greeting\nstd::out pi',
+};
+var CSIM={
+  hello:['FloatScript.Oriole',"Function 'greet' returned: Welcome to FloatScript!"],
+  fn:["Function 'square' returned: 49","Result computed"],
+  loop:['FloatScript.Oriole is fast','1'],
+  cls:["Set member 'name' in class 'Animal'.",'Set member \'speed\' in class \'Animal\'',"Inside Animal context",'Oriole Bird','120',"Exited context of class 'Animal'."],
+  vect:['[10, 20, 30, 40, 50]','Hello, FloatScript.Oriole!','3.14159'],
+};
+var curS='hello';
+var cme=CodeMirror.fromTextArea(document.getElementById('cme'),{
+  mode:'floatscript',theme:'dracula',lineNumbers:true,lineWrapping:true,tabSize:2,indentWithTabs:false,
+});
+cme.setValue(CSNIPS.hello);
 
-            // Purchase Modal
-            const buyButtons = document.querySelectorAll('#buy-button, #mobile-buy-button, [data-version]');
-            const purchaseModal = document.getElementById('purchase-modal');
-            const closeModalButton = document.getElementById('close-modal');
-            const processPaymentButton = document.getElementById('process-payment');
-            const purchaseForm = document.getElementById('purchase-form');
-            const successMessage = document.getElementById('success-message');
-            const versionSelect = document.getElementById('version-select');
-            const purchasePrice = document.getElementById('purchase-price');
-            
-            const versionPrices = { 'v1.5': '$1.00', 'v2.0': '$1.50' };
+document.getElementById('sbtns').addEventListener('click',function(e){
+  var btn=e.target.closest('.sbtn');if(!btn)return;
+  curS=btn.dataset.s;cme.setValue(CSNIPS[curS]);
+  document.querySelectorAll('.sbtn').forEach(function(b){b.classList.remove('act');});
+  btn.classList.add('act');
+  document.getElementById('cout').innerHTML='<span class="p">$ Ready — press ▶ Run</span>';
+});
 
-            buyButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    if (this.dataset.version) {
-                        versionSelect.value = this.dataset.version;
-                        purchasePrice.textContent = versionPrices[this.dataset.version];
-                    }
-                    purchaseModal.classList.remove('hidden');
-                });
-            });
+document.getElementById('runBtn').addEventListener('click',runCode);
+function runCode(){
+  var out=document.getElementById('cout');
+  out.innerHTML='<span class="p">$ floatscript.oriole run main.flt</span>';
+  var lines=CSIM[curS]||[];var i=0;
+  function next(){
+    if(i>=lines.length){
+      var ok=document.createElement('span');ok.className='ln ok';ok.textContent='✓ Process exited with code 0';
+      out.appendChild(document.createElement('br'));out.appendChild(ok);out.scrollTop=out.scrollHeight;return;
+    }
+    var s=document.createElement('span');s.className='ln';s.textContent=lines[i];
+    out.appendChild(document.createElement('br'));out.appendChild(s);out.scrollTop=out.scrollHeight;i++;
+    setTimeout(next,180);
+  }
+  setTimeout(next,380);
+}
+</script>
 
-            closeModalButton.addEventListener('click', function() {
-                anime({
-                    targets: purchaseModal.querySelector('.glass-container'),
-                    opacity: [1, 0], translateY: [0, 50], duration: 300, easing: 'easeInQuad',
-                    complete: () => {
-                        purchaseModal.classList.add('hidden');
-                        purchaseForm.classList.remove('hidden');
-                        successMessage.classList.add('hidden');
-                    }
-                });
-            });
+<!-- ============================================================
+  FIREBASE — Reviews System
+  ============================================================
+  FIRESTORE SECURITY RULES — paste in Firebase Console → Firestore → Rules → Publish:
 
-            processPaymentButton.addEventListener('click', function() {
-                purchaseForm.classList.add('hidden');
-                successMessage.classList.remove('hidden');
-            });
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+      match /{document=**} {
+        allow read, write: if true;
+      }
+    }
+  }
 
-            versionSelect.addEventListener('change', function() {
-                purchasePrice.textContent = versionPrices[this.value];
-            });
+  ============================================================ -->
+<script type="module">
+import { initializeApp }        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, collection, addDoc, getDocs, getDoc,
+  doc, runTransaction, updateDoc, increment,
+  query, orderBy, limit, startAfter, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-            // --- Performance Benchmark Animation Trigger ---
-            const benchmarkChart = document.getElementById('benchmark-chart');
-            const benchmarkObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        benchmarkChart.classList.add('in-view');
-                        benchmarkObserver.unobserve(entry.target);
-                    }
-                });
-            }, { threshold: 0.5 });
-            benchmarkObserver.observe(benchmarkChart);
+/* ── init ── */
+const app = initializeApp({
+  apiKey:            "AIzaSyASnHf6JQf4-62nnyHZ_BqAQdSA0em5apY",
+  authDomain:        "oriole-c6329.firebaseapp.com",
+  projectId:         "oriole-c6329",
+  storageBucket:     "oriole-c6329.firebasestorage.app",
+  messagingSenderId: "131305756394",
+  appId:             "1:131305756394:web:c92e9a4e059016b99ea993",
+  measurementId:     "G-FPFE5P52Z2"
+});
+const db = getFirestore(app);
 
-            // --- Hero Download Dropdown ---
-            const downloadButton = document.getElementById('download-dropdown-button');
-            const downloadMenu = document.getElementById('download-dropdown-menu');
+/* ── state ── */
+const PAGE_SIZE    = 5;
+let   lastVisible  = null;   // last Firestore doc snapshot for pagination
+let   isLoading    = false;  // prevent double-loads
+const likedSet     = new Set(JSON.parse(localStorage.getItem('fs-liked') || '[]'));
+let   totalCount   = 0;      // running total shown in badge
 
-            if (downloadButton && downloadMenu) {
-                downloadButton.addEventListener('click', (event) => {
-                    event.stopPropagation();
-                    downloadMenu.classList.toggle('hidden');
-                });
+/* ── helpers ── */
+function timeAgo(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const s = Math.floor((Date.now() - d.getTime()) / 1000);
+  if (s < 60)    return `${s}s ago`;
+  if (s < 3600)  return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+function initials(name) {
+  return (name || '?').trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+function saveLiked() {
+  localStorage.setItem('fs-liked', JSON.stringify([...likedSet]));
+}
+function updateBadge() {
+  const el = document.getElementById('rev-count-badge');
+  if (el) el.textContent = totalCount > 0 ? `${totalCount} review${totalCount !== 1 ? 's' : ''}` : '';
+}
 
-                window.addEventListener('click', (event) => {
-                    if (!downloadMenu.classList.contains('hidden') && !downloadButton.contains(event.target)) {
-                        downloadMenu.classList.add('hidden');
-                    }
-                });
-            }
+/* ── render a single reply ── */
+function renderReplyEl(rd) {
+  const div = document.createElement('div');
+  div.className = 'repi';
+  div.innerHTML = `
+    <div class="rava" style="width:28px;height:28px;font-size:.62rem;flex-shrink:0;min-width:28px;">${initials(rd.name)}</div>
+    <div style="flex:1;min-width:0;">
+      <div class="repnm">
+        ${rd.name || 'Anonymous'}
+        <span style="font-size:.67rem;color:var(--mu);font-weight:400;margin-left:.35rem;">${timeAgo(rd.timestamp)}</span>
+      </div>
+      <div class="repb">${rd.comment}</div>
+    </div>`;
+  return div;
+}
 
+/* ── render a single review card ── */
+function renderReviewEl(data, id) {
+  const liked    = likedSet.has(id);
+  const repCount = data.replyCount || 0;
+  const el = document.createElement('div');
+  el.className = 'ri';
+  el.dataset.id = id;
+  el.innerHTML = `
+    <div class="rhead">
+      <div class="rauthor">
+        <div class="rava">${initials(data.name)}</div>
+        <div>
+          <div class="rnm">${data.name || 'Anonymous'}</div>
+          <div class="rts">${timeAgo(data.timestamp)}</div>
+        </div>
+      </div>
+    </div>
+    <p class="rbody">${data.comment}</p>
+    <div class="racts">
+      <button class="lbtn${liked ? ' lk' : ''}" data-id="${id}" title="Like this review">
+        <i class="fas fa-heart"></i>
+        <span class="like-count">${data.likes || 0}</span>
+      </button>
+      <button class="rtog" data-id="${id}">
+        <i class="fas fa-reply"></i>
+        Reply${repCount > 0 ? ` (${repCount})` : ''}
+      </button>
+    </div>
+    <div class="rsec" id="rs-${id}" style="display:none;">
+      <div class="rep-loading" id="rl-loading-${id}" style="display:none;">
+        <div class="spin" style="width:22px;height:22px;border-width:2px;margin:.5rem auto;"></div>
+      </div>
+      <div id="rl-${id}"></div>
+      <div class="repf" style="margin-top:.75rem;">
+        <input type="text"  placeholder="Your name"     id="repn-${id}" style="max-width:115px;" />
+        <input type="text"  placeholder="Write a reply…" id="rept-${id}" />
+        <button class="repsub" data-id="${id}">Send</button>
+      </div>
+    </div>`;
+  return el;
+}
 
-            // --- Initialize Functions ---
-            animateTyping();
-            createBinaryRain();
-            setupScrollAnimations();
-        });
-    </script>
+/* ── load reviews (fresh=true resets list) ── */
+async function loadReviews(fresh = false) {
+  if (isLoading) return;
+  isLoading = true;
+  const list  = document.getElementById('rlist');
+  const lmBtn = document.getElementById('loadm');
+
+  if (fresh) {
+    list.innerHTML = '<div class="spinw"><div class="spin"></div></div>';
+    lastVisible = null;
+    totalCount  = 0;
+  }
+
+  try {
+    const reviewsRef = collection(db, 'reviews');
+    let q = query(reviewsRef, orderBy('timestamp', 'desc'), limit(PAGE_SIZE));
+    if (!fresh && lastVisible) {
+      q = query(reviewsRef, orderBy('timestamp', 'desc'), startAfter(lastVisible), limit(PAGE_SIZE));
+    }
+
+    const snapshot = await getDocs(q);
+
+    if (fresh) list.innerHTML = '';
+
+    if (snapshot.empty && fresh) {
+      list.innerHTML = `
+        <div class="rempty">
+          <i class="fas fa-comment-dots" style="font-size:2rem;display:block;margin-bottom:.6rem;opacity:.4;"></i>
+          No reviews yet. Be the first to share your experience!
+        </div>`;
+      lmBtn.style.display = 'none';
+      isLoading = false;
+      return;
+    }
+
+    snapshot.forEach(docSnap => {
+      lastVisible = docSnap;
+      totalCount++;
+      list.appendChild(renderReviewEl(docSnap.data(), docSnap.id));
+    });
+
+    updateBadge();
+    const moreAvailable = snapshot.docs.length === PAGE_SIZE;
+    lmBtn.style.display = moreAvailable ? 'block' : 'none';
+
+  } catch (err) {
+    console.error('loadReviews error:', err);
+    if (fresh) {
+      list.innerHTML = `
+        <div class="rempty">
+          <i class="fas fa-exclamation-circle" style="font-size:1.8rem;display:block;margin-bottom:.5rem;color:#F85149;"></i>
+          Could not load reviews. Check your connection and try again.
+          <br/><br/>
+          <small style="font-size:.75rem;opacity:.6;">Error: ${err.message}</small>
+        </div>`;
+    }
+  }
+  isLoading = false;
+}
+
+/* ── load replies for a review (lazy, on toggle) ── */
+async function loadReplies(reviewId) {
+  const container = document.getElementById('rl-' + reviewId);
+  const loader    = document.getElementById('rl-loading-' + reviewId);
+  if (!container || container.dataset.loaded === '1') return;
+
+  loader.style.display = 'block';
+  try {
+    const repliesRef = collection(db, 'reviews', reviewId, 'replies');
+    const q          = query(repliesRef, orderBy('timestamp', 'asc'));
+    const snapshot   = await getDocs(q);
+    container.innerHTML = '';
+    snapshot.forEach(d => container.appendChild(renderReplyEl(d.data())));
+    container.dataset.loaded = '1';
+  } catch (err) {
+    console.error('loadReplies error:', err);
+  }
+  loader.style.display = 'none';
+}
+
+/* ── submit a review ── */
+async function submitReview() {
+  const nameEl    = document.getElementById('rn');
+  const commentEl = document.getElementById('rc');
+  const emailEl   = document.getElementById('re');
+  const btn       = document.getElementById('subbtn');
+
+  const name    = (nameEl.value    || '').trim();
+  const comment = (commentEl.value || '').trim();
+
+  if (!name)    { nameEl.focus();    nameEl.style.borderColor = '#F85149'; return; }
+  if (!comment) { commentEl.focus(); commentEl.style.borderColor = '#F85149'; return; }
+
+  nameEl.style.borderColor    = '';
+  commentEl.style.borderColor = '';
+  btn.disabled  = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting…';
+
+  try {
+    await addDoc(collection(db, 'reviews'), {
+      name,
+      comment,
+      timestamp:  serverTimestamp(),
+      likes:      0,
+      replyCount: 0
+    });
+
+    nameEl.value    = '';
+    commentEl.value = '';
+    if (emailEl) emailEl.value = '';
+
+    await loadReviews(true);   // refresh from top
+
+    btn.innerHTML = '<i class="fas fa-check"></i> Posted!';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Review';
+      btn.disabled  = false;
+    }, 2200);
+
+  } catch (err) {
+    console.error('submitReview error:', err);
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Review';
+    btn.disabled  = false;
+    alert(`Could not post review.\n\n${err.message}`);
+  }
+}
+
+/* ── like a review (transaction + debounce) ── */
+const likeDebounce = {};
+async function likeReview(reviewId, btn) {
+  if (likedSet.has(reviewId)) return;
+  if (likeDebounce[reviewId]) return;
+  likeDebounce[reviewId] = true;
+
+  likedSet.add(reviewId);
+  saveLiked();
+  btn.classList.add('lk');
+
+  // optimistic UI
+  const countEl = btn.querySelector('.like-count');
+  if (countEl) countEl.textContent = +countEl.textContent + 1;
+
+  try {
+    const reviewRef = doc(db, 'reviews', reviewId);
+    await runTransaction(db, async tx => {
+      const snap = await tx.get(reviewRef);
+      if (!snap.exists()) throw new Error('Review not found');
+      tx.update(reviewRef, { likes: (snap.data().likes || 0) + 1 });
+    });
+  } catch (err) {
+    console.error('likeReview error:', err);
+    // roll back optimistic UI
+    likedSet.delete(reviewId);
+    saveLiked();
+    btn.classList.remove('lk');
+    if (countEl) countEl.textContent = +countEl.textContent - 1;
+  }
+  setTimeout(() => { delete likeDebounce[reviewId]; }, 2000);
+}
+
+/* ── submit a reply ── */
+async function submitReply(reviewId) {
+  const nameEl    = document.getElementById('repn-' + reviewId);
+  const commentEl = document.getElementById('rept-' + reviewId);
+  const sendBtn   = document.querySelector(`.repsub[data-id="${reviewId}"]`);
+
+  const name    = (nameEl.value    || '').trim() || 'Anonymous';
+  const comment = (commentEl.value || '').trim();
+  if (!comment) { commentEl.focus(); return; }
+
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
+
+  try {
+    // add reply document
+    await addDoc(collection(db, 'reviews', reviewId, 'replies'), {
+      name,
+      comment,
+      timestamp: serverTimestamp()
+    });
+
+    // increment replyCount on parent
+    await updateDoc(doc(db, 'reviews', reviewId), {
+      replyCount: increment(1)
+    });
+
+    // instantly show new reply in UI
+    const container = document.getElementById('rl-' + reviewId);
+    if (container) {
+      const newEl = renderReplyEl({ name, comment, timestamp: null });
+      newEl.querySelector('.repnm span').textContent = 'just now';
+      container.appendChild(newEl);
+      container.dataset.loaded = '1'; // keep loaded flag
+    }
+
+    // update reply count label on toggle button
+    const togBtn = document.querySelector(`.rtog[data-id="${reviewId}"]`);
+    if (togBtn) {
+      const m = togBtn.textContent.match(/\((\d+)\)/);
+      const cur = m ? parseInt(m[1]) : 0;
+      togBtn.innerHTML = `<i class="fas fa-times"></i> Close (${cur + 1})`;
+    }
+
+    nameEl.value    = '';
+    commentEl.value = '';
+  } catch (err) {
+    console.error('submitReply error:', err);
+    alert(`Could not post reply.\n\n${err.message}`);
+  }
+
+  if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
+}
+
+/* ── event delegation on list ── */
+document.getElementById('rlist').addEventListener('click', async e => {
+  // like button
+  const lb = e.target.closest('.lbtn');
+  if (lb) { await likeReview(lb.dataset.id, lb); return; }
+
+  // reply toggle
+  const rt = e.target.closest('.rtog');
+  if (rt) {
+    const id  = rt.dataset.id;
+    const sec = document.getElementById('rs-' + id);
+    const open = sec.style.display !== 'none';
+    sec.style.display = open ? 'none' : 'block';
+    if (!open) {
+      await loadReplies(id);
+      rt.innerHTML = `<i class="fas fa-times"></i> Close`;
+    } else {
+      const repCount = parseInt((rt.textContent.match(/\((\d+)\)/) || [])[1] || '0');
+      rt.innerHTML = `<i class="fas fa-reply"></i> Reply${repCount > 0 ? ` (${repCount})` : ''}`;
+    }
+    return;
+  }
+
+  // reply submit
+  const rs = e.target.closest('.repsub');
+  if (rs) { await submitReply(rs.dataset.id); return; }
+});
+
+/* ── wire up static buttons ── */
+document.getElementById('loadm').addEventListener('click',  () => loadReviews(false));
+document.getElementById('subbtn').addEventListener('click', submitReview);
+
+/* ── lazy-init: only fire when reviews section scrolls into view ── */
+const reviewsSection = document.getElementById('reviews');
+let   fbInitialized  = false;
+new IntersectionObserver((entries, obs) => {
+  if (entries[0].isIntersecting && !fbInitialized) {
+    fbInitialized = true;
+    loadReviews(true);
+    obs.disconnect();
+  }
+}, { threshold: 0.05 }).observe(reviewsSection);
+</script>
 </body>
 </html>
