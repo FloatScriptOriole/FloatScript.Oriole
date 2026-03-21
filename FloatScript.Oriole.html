@@ -180,7 +180,7 @@ section{padding:6.5rem 2rem;}
 .wmet span{font-size:.7rem;opacity:.68;font-weight:600;}
 .wgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem;}
 .wc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:1.7rem;transition:var(--tr);position:relative;overflow:hidden;}
-.wc::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(16,60,231,.04),transparent);opacity:0;transition:opacity .3s;}
+.wc::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(16,60,231,.04),transparent);opacity:0;transition:opacity .3s;pointer-events:none;}
 .wc:hover{transform:translateY(-8px);box-shadow:var(--sm);}
 .wc:hover::after{opacity:1;}
 .wi{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.25rem;color:#fff;margin-bottom:1.15rem;}
@@ -250,7 +250,7 @@ section{padding:6.5rem 2rem;}
 #download::before{content:'';position:absolute;bottom:-200px;left:-150px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(16,60,231,.04) 0%,transparent 65%);pointer-events:none;}
 .dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem;margin-top:3rem;}
 .dc{background:var(--cd);border:1px solid var(--bd);border-radius:var(--r);padding:2.5rem 2rem;text-align:center;transition:var(--tr);position:relative;overflow:hidden;}
-.dc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(45,255,245,.04),transparent);opacity:0;transition:opacity .3s;}
+.dc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(45,255,245,.04),transparent);opacity:0;transition:opacity .3s;pointer-events:none;}
 .dc:hover{transform:translateY(-10px);box-shadow:var(--sl);}
 .dc:hover::before{opacity:1;}
 .dico{font-size:2.9rem;display:block;margin-bottom:1rem;}
@@ -515,7 +515,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bd);padding:3.5rem 2rem 
   <div class="wrap">
     <div class="rv">
       <span class="stag"><i class="fas fa-code-branch" style="font-size:.9em;"></i> Version History</span>
-      <h2 class="stitle">From Zero to FloatScript.Oriole</h2>
+      <h2 class="stitle">From Zero to FloatScript</h2>
       <p class="ssub">A language's journey, one release at a time.</p>
     </div>
     <div class="vgrid">
@@ -532,13 +532,13 @@ footer{background:var(--bg2);border-top:1px solid var(--bd);padding:3.5rem 2rem 
   <div class="wrap">
     <div class="rv" style="text-align:center;">
       <span class="stag"><i class="fas fa-download" style="font-size:.9em;"></i> Download</span>
-      <h2 class="stitle">Get FloatScript.Oriole</h2>
+      <h2 class="stitle">Get FloatScript</h2>
       <p class="ssub" style="margin:0 auto;">Free. Open‑source. Ready to run.</p>
     </div>
     <div class="dgrid">
       <div class="dc rv d1"><i class="fab fa-windows dico tm"></i><h3>Windows</h3><p>Supports Windows 10 &amp; 11. Extract and run the interpreter from your terminal.</p><button class="dbtn" onclick="forceDownload('https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.windows.zip','floatscript-oriole-windows.zip',this)"><i class="fas fa-download"></i> Download .zip</button></div>
       <div class="dc rv d2"><i class="fab fa-linux dico tm"></i><h3>Linux</h3><p>Compatible with Ubuntu, Debian, Arch and most major distributions.</p><button class="dbtn" onclick="forceDownload('https://floatscriptoriole.github.io/FloatScript.Oriole/downloads/floatscriptoriole.linux.zip','floatscript-oriole-linux.zip',this)"><i class="fas fa-download"></i> Download .zip</button></div>
-      <div class="dc rv d3"><i class="fab fa-apple dico" style="background:linear-gradient(135deg,#64748B,#94A3B8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i><h3>macOS</h3><p>macOS support is coming soon. Join the waitlist to be notified at launch.</p><a href="mailto:floatscript.oriole@gmail.com?subject=macOS%20Waitlist" class="dbtn soon"><i class="fas fa-envelope"></i> Join Waitlist</a></div>
+      <div class="dc rv d3"><i class="fab fa-apple dico" style="background:linear-gradient(135deg,#64748B,#94A3B8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"></i><h3>macOS</h3><p>macOS support is coming soon. Join the waitlist to be notified at launch.</p><a href="/cdn-cgi/l/email-protection#8bede7e4eafff8e8f9e2fbffa5e4f9e2e4e7eecbece6eae2e7a5e8e4e6b4f8fee9e1eee8ffb6e6eae8c4d8aeb9bbdceae2ffe7e2f8ff" class="dbtn soon"><i class="fas fa-envelope"></i> Join Waitlist</a></div>
     </div>
     <div class="dfoot rv">
       <a href="https://github.com/FloatScriptOriole/FloatScript.Oriole/tree/main" target="_blank" class="bm"><i class="fab fa-github"></i> View on GitHub</a>
@@ -622,7 +622,7 @@ footer{background:var(--bg2);border-top:1px solid var(--bd);padding:3.5rem 2rem 
 <!-- ======================================================
      NON-MODULE SCRIPTS  (dark mode, UI, CodeMirror, etc.)
      ====================================================== -->
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* force download helper */
 function forceDownload(url, filename, btn) {
   var orig = btn.innerHTML;
@@ -1157,12 +1157,4 @@ document.getElementById('subbtn').addEventListener('click', submitReview);
 const reviewsSection = document.getElementById('reviews');
 let   fbInitialized  = false;
 new IntersectionObserver((entries, obs) => {
-  if (entries[0].isIntersecting && !fbInitialized) {
-    fbInitialized = true;
-    loadReviews(true);
-    obs.disconnect();
-  }
-}, { threshold: 0.05 }).observe(reviewsSection);
-</script>
-</body>
-</html>
+  if (entries[0].is
