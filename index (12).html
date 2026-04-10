@@ -403,23 +403,23 @@
         <!-- stats grid -->
         <div class="stats-grid">
             <div class="stat-item"><i class="fas fa-code-branch"></i><div class="stat-label">DOMAIN</div><div class="stat-value">float</div></div>
-            <div class="stat-item"><i class="fas fa-eye"></i><div class="stat-label">VISITS</div><div class="stat-value">22.5k</div></div>
-            <div class="stat-item"><i class="fas fa-layer-group"></i><div class="stat-label">MONTHLY</div><div class="stat-value">$600</div></div>
+            <div class="stat-item"><i class="fas fa-eye"></i><div class="stat-label">VISITS</div><div class="stat-value">23.1k</div></div>
+            <div class="stat-item"><i class="fas fa-layer-group"></i><div class="stat-label">MONTHLY</div><div class="stat-value">$800</div></div>
         </div>
 
         <!-- BALANCE CARD: current, download, available (proper calculation) -->
         <div class="balance-snapshot">
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-wallet"></i> Current balance</span>
-                <span class="balance-value" id="current-balance-display">$3,473.99</span>
+                <span class="balance-value" id="current-balance-display">$3,810.99</span>
             </div>
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-download"></i> Download balance</span>
-                <span class="balance-value" id="download-balance">$193.88</span>
+                <span class="balance-value" id="download-balance">$300.88</span>
             </div>
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-arrow-up"></i> Available</span>
-                <span class="balance-value" id="available-balance">$2,919.53</span>
+                <span class="balance-value" id="available-balance">$3,300.11</span>
             </div>
         </div>
 
@@ -506,8 +506,8 @@
     <script>
         (function() {
             // --- exact calculation: current - monthly = available (plus download balance $41)
-            const current = 3479.99;         // current balance
-            const monthly = 500.77;           // monthly subscription (from UI)
+            const current = 4100.99;         // current balance
+            const monthly = 800.77;           // monthly subscription (from UI)
             const download = 146.00;            // new "download balance"
             let available = current - monthly;  // 2683.99 - 748.77 = 1935.22 (but we keep precision)
 
