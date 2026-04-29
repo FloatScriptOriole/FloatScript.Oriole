@@ -404,22 +404,22 @@
         <div class="stats-grid">
             <div class="stat-item"><i class="fas fa-code-branch"></i><div class="stat-label">DOMAIN</div><div class="stat-value">float</div></div>
             <div class="stat-item"><i class="fas fa-eye"></i><div class="stat-label">VISITS</div><div class="stat-value">23.7k</div></div>
-            <div class="stat-item"><i class="fas fa-layer-group"></i><div class="stat-label">MONTHLY</div><div class="stat-value">$837</div></div>
+            <div class="stat-item"><i class="fas fa-layer-group"></i><div class="stat-label">MONTHLY</div><div class="stat-value">$1800</div></div>
         </div>
 
         <!-- BALANCE CARD: current, download, available (proper calculation) -->
         <div class="balance-snapshot">
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-wallet"></i> Current balance</span>
-                <span class="balance-value" id="current-balance-display">$3,810.99</span>
+                <span class="balance-value" id="current-balance-display">$0</span>
             </div>
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-download"></i> Download balance</span>
-                <span class="balance-value" id="download-balance">$356.88</span>
+                <span class="balance-value" id="download-balance">$0.89</span>
             </div>
             <div class="balance-row">
                 <span class="balance-label"><i class="fas fa-arrow-up"></i> Available</span>
-                <span class="balance-value" id="available-balance">$3,300.11</span>
+                <span class="balance-value" id="available-balance">$0</span>
             </div>
         </div>
 
@@ -456,7 +456,7 @@
         <div class="withdraw-section">
             <div class="section-header">
                 <h2><i class="fas fa-arrow-up-from-bracket"></i> Withdraw funds</h2>
-                <span class="chip">available <span id="available-chip">$1,893.53</span></span>
+                <span class="chip">available <span id="available-chip">$0</span></span>
             </div>
             <input type="number" id="withdraw-amount" class="input-field" placeholder="0.00" step="0.01" min="0.01">
             <button id="withdraw-button" class="withdraw-btn"><i class="fab fa-google-pay"></i> Payout wall <i class="fas fa-arrow-right"></i></button>
@@ -506,9 +506,9 @@
     <script>
         (function() {
             // --- exact calculation: current - monthly = available (plus download balance $41)
-            const current = 4100.99;         // current balance
-            const monthly = 800.77;           // monthly subscription (from UI)
-            const download = 315.80;            // new "download balance"
+            const current = 0;         // current balance
+            const monthly = 1800.77;           // monthly subscription (from UI)
+            const download = 0;            // new "download balance"
             let available = current - monthly;  // 2683.99 - 748.77 = 1935.22 (but we keep precision)
 
             // update DOM
